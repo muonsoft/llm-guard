@@ -2,7 +2,7 @@
 
 Lightweight open-source **LLM Guard for Go** — локальное обнаружение PII и секретов, обратимая маскировка и восстановление текста в LLM-пайплайнах.
 
-**Статус:** ранний MVP; доступны built-in detectors для EMAIL, conservative RU PERSON, compositional RU ADDRESS, structured pack (PHONE, IP_ADDRESS, URL, INN, SNILS, BANK_CARD, PASSPORT, BANK_ACCOUNT, contextual DATE_OF_BIRTH), conservative secret pack (JWT, PEM private key, provider API keys, credential-bearing DSN), immutable allow/mask/block policy, `CustomRegexpDetector` для string entity, deterministic resolver, reversible masking/restore и detection-only API для custom Go detectors.
+**Статус:** MVP **release candidate** — полный built-in detector pack, immutable allow/mask/block policy, deterministic resolver, reversible masking/restore, framework-neutral safe observability (Noop by default), offline evaluation runner, benchmarks и embedded Detect → Mask → Restore flow. Это не объявленный production release.
 
 ## Зачем
 
@@ -29,6 +29,8 @@ App → Guard (mask) → LLM → Guard (restore) → App
 | [docs/light_llm_guard_go_mvp_plan.md](docs/light_llm_guard_go_mvp_plan.md) | Черновик MVP-плана |
 | [docs/milestones/](docs/milestones/) | Milestone scope, status dashboard и orchestration runbook |
 | [openspec/](openspec/) | Spec-driven workflow (OpenSpec) |
+| [docs/evaluation-baseline.md](docs/evaluation-baseline.md) | Full-MVP evaluation corpus and reproduction command |
+| [docs/benchmark-baseline.md](docs/benchmark-baseline.md) | Representative Detect/Mask/Restore benchmarks (no SLO) |
 | [docs/secret-patterns.md](docs/secret-patterns.md) | Versioned secret pattern snapshot and update procedure |
 | [AGENTS.md](AGENTS.md) | Инструкции для coding agents |
 
@@ -70,6 +72,35 @@ llmResponse := callLLM(result.Text)
 
 restored, err := guard.Restore(ctx, llmResponse, result.Tokens)
 ```
+
+### Release-candidate embedded flow
+
+```go
+guard, err := llmguard.New(
+    llmguard.WithDetector(llmguard.NewPersonDetector()),
+    llmguard.WithDetector(llmguard.NewEmailDetector()),
+    llmguard.WithDetector(llmguard.NewAPIKeyDetector()),
+    llmguard.WithObserver(llmguard.ObserverFunc(func(event llmguard.Event) {
+        // Safe counters only: operation, outcome, lengths, durations, entity/action counts.
+    })),
+)
+if err != nil {
+    return err
+}
+
+masked, err := guard.Mask(ctx, userPrompt)
+if err != nil {
+    return err // secrets block by default (ErrBlocked)
+}
+
+llmResponse := callYourLLM(masked.Text) // caller-owned boundary; keep masked.Tokens secret
+
+restored, err := guard.Restore(ctx, llmResponse, masked.Tokens)
+```
+
+`WithObserver` is optional; default is `NoopObserver` with no callbacks or side effects.
+
+**UNSAFE FOR PRODUCTION:** `WithUnsafeDevelopmentObserver` exposes raw text and findings for local debugging only. It is independent from the safe observer and must never be enabled in production paths.
 
 `TokenSet` принадлежит caller и не раскрывает чувствительные значения через `String`, `GoString` или JSON.
 
@@ -145,6 +176,34 @@ guard, err := llmguard.New(
     llmguard.WithSecretAction(llmguard.ActionMask), // explicit opt-in to mask secrets
 )
 ```
+
+## Observability and quality (M7)
+
+Safe terminal events cover Detect, Mask, and Restore (`success`, `error`, `blocked`, `restore_miss`) with bounded lengths, durations, and low-cardinality entity/action counts only. No Prometheus/OpenTelemetry/logging dependency in core.
+
+```bash
+# Full-MVP evaluation (representative corpus; exits non-zero on FP/FN)
+go run ./cmd/llmguard-eval -corpus ./testdata/evaluation/cases.jsonl -format markdown -fail-on-regression
+
+# Benchmarks (development baseline, not an SLO)
+go test ./... -run '^$' -bench . -benchmem -count=5
+```
+
+See [docs/evaluation-baseline.md](docs/evaluation-baseline.md) and [docs/benchmark-baseline.md](docs/benchmark-baseline.md).
+
+### Security considerations
+
+- Default observer and public errors never include original text, finding values, detector causes, or TokenSet mappings.
+- Secrets use `ActionBlock` by default; masking requires explicit `WithSecretAction(ActionMask)`.
+- `TokenSet` is caller-owned and must not be logged or sent to untrusted parties.
+- Unsafe development diagnostics (`WithUnsafeDevelopmentObserver`) leak sensitive data by design — keep them out of production.
+
+### Known limitations
+
+- Conservative RU-first detectors; English and edge cases may be missed or partially supported.
+- Unified evaluation corpus is representative; deep regression lives in family corpora under `testdata/`.
+- Benchmark numbers vary by hardware and are not production SLOs.
+- No exporter server, persistent audit store, or distributed tracing in core.
 
 ## Разработка
 

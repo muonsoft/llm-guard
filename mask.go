@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 )
 
 const (
@@ -41,6 +42,16 @@ type MaskResult struct {
 	Text     string
 	Findings []Finding
 	Tokens   *TokenSet
+}
+
+// String returns a safe summary without masked text, findings, or token mappings.
+func (r MaskResult) String() string {
+	return fmt.Sprintf("llmguard.MaskResult{findings=%d tokens=%s}", len(r.Findings), redactedTokenSetSummary())
+}
+
+// GoString returns the same safe summary as String.
+func (r MaskResult) GoString() string {
+	return r.String()
 }
 
 // MarshalJSON returns a safe JSON representation without sensitive values.
@@ -95,26 +106,67 @@ func (g *Guard) Mask(ctx context.Context, text string) (MaskResult, error) {
 		return MaskResult{}, err
 	}
 
+	started := time.Now()
+	inputBytes := len(text)
+	var (
+		outcome  Outcome
+		result   MaskResult
+		err      error
+		resolved []Finding
+	)
+	defer func() {
+		event := Event{
+			Operation:    OperationMask,
+			Outcome:      outcome,
+			InputBytes:   inputBytes,
+			OutputBytes:  len(result.Text),
+			Duration:     time.Since(started),
+			FindingCount: len(result.Findings),
+		}
+		switch outcome {
+		case OutcomeBlocked:
+			event.OutputBytes = 0
+			event.EntityCounts = buildEntityCounts(resolved)
+			event.ActionCounts = buildActionCounts(resolved, g.actionForEntity)
+		case OutcomeSuccess:
+			event.EntityCounts = buildEntityCounts(result.Findings)
+			event.ActionCounts = buildActionCounts(result.Findings, g.actionForEntity)
+		}
+		g.publishSafeEvent(event)
+		g.publishUnsafeEvent(UnsafeDevelopmentEvent{
+			Operation: OperationMask,
+			Outcome:   outcome,
+			Input:     text,
+			Output:    result.Text,
+			Findings:  result.Findings,
+		})
+	}()
+
 	findings, err := g.Detect(ctx, text)
 	if err != nil {
+		outcome = OutcomeError
 		return MaskResult{}, err
 	}
 
-	resolved, err := Resolve(text, findings)
+	resolved, err = Resolve(text, findings)
 	if err != nil {
+		outcome = OutcomeError
 		return MaskResult{}, err
 	}
 
 	if len(resolved) == 0 {
-		return MaskResult{
+		outcome = OutcomeSuccess
+		result = MaskResult{
 			Text:     text,
 			Findings: nil,
 			Tokens:   newTokenSet(nil),
-		}, nil
+		}
+		return result, nil
 	}
 
 	for _, finding := range resolved {
 		if g.actionForEntity(finding.Entity) == ActionBlock {
+			outcome = OutcomeBlocked
 			return MaskResult{}, newBlockError()
 		}
 	}
@@ -127,24 +179,29 @@ func (g *Guard) Mask(ctx context.Context, text string) (MaskResult, error) {
 	}
 
 	if len(maskFindings) == 0 {
-		return MaskResult{
+		outcome = OutcomeSuccess
+		result = MaskResult{
 			Text:     text,
 			Findings: resolved,
 			Tokens:   newTokenSet(nil),
-		}, nil
+		}
+		return result, nil
 	}
 
 	tokens, replacements, err := g.buildMaskReplacements(ctx, text, maskFindings)
 	if err != nil {
+		outcome = OutcomeError
 		return MaskResult{}, err
 	}
 
 	masked := applyReplacementsRightToLeft(text, replacements)
-	return MaskResult{
+	outcome = OutcomeSuccess
+	result = MaskResult{
 		Text:     masked,
 		Findings: resolved,
 		Tokens:   tokens,
-	}, nil
+	}
+	return result, nil
 }
 
 // Restore replaces exact known placeholders in response using the provided
@@ -153,21 +210,64 @@ func (g *Guard) Restore(ctx context.Context, response string, tokens *TokenSet) 
 	if err := ctx.Err(); err != nil {
 		return "", err
 	}
+
+	started := time.Now()
+	inputBytes := len(response)
+	var (
+		outcome  Outcome
+		restored string
+		err      error
+		misses   int
+	)
+	defer func() {
+		event := Event{
+			Operation:     OperationRestore,
+			Outcome:       outcome,
+			InputBytes:    inputBytes,
+			OutputBytes:   len(restored),
+			Duration:      time.Since(started),
+			RestoreMisses: misses,
+		}
+		g.publishSafeEvent(event)
+		g.publishUnsafeEvent(UnsafeDevelopmentEvent{
+			Operation: OperationRestore,
+			Outcome:   outcome,
+			Input:     response,
+			Output:    restored,
+		})
+	}()
+
 	if tokens == nil {
-		return "", newInvalidTokenSetError("nil token set")
-	}
-	if err := validateInputText(response); err != nil {
+		outcome = OutcomeError
+		err = newInvalidTokenSetError("nil token set")
 		return "", err
 	}
+	if err = validateInputText(response); err != nil {
+		outcome = OutcomeError
+		return "", err
+	}
+	misses = countRestoreMisses(response, tokens)
 	if len(tokens.mappings) == 0 {
-		return response, nil
+		if misses > 0 {
+			outcome = OutcomeRestoreMiss
+		} else {
+			outcome = OutcomeSuccess
+		}
+		restored = response
+		return restored, nil
 	}
 
 	pairs := make([]string, 0, len(tokens.mappings)*2)
 	for _, mapping := range tokens.mappings {
 		pairs = append(pairs, mapping.token, mapping.value)
 	}
-	return strings.NewReplacer(pairs...).Replace(response), nil
+	restored = strings.NewReplacer(pairs...).Replace(response)
+	if misses > 0 {
+		outcome = OutcomeRestoreMiss
+	} else {
+		outcome = OutcomeSuccess
+	}
+	return restored, nil
 }
 
 type maskReplacement struct {

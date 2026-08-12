@@ -23,4 +23,26 @@ const (
 	EntitySecretPrivateKey EntityType = "SECRET_PRIVATE_KEY"
 	EntitySecretAPIKey     EntityType = "SECRET_API_KEY"
 	EntityConnectionString EntityType = "CONNECTION_STRING"
+
+	// EntityCustom is the stable observability bucket label for non-built-in entity
+	// types in production-safe observer events.
+	EntityCustom EntityType = "CUSTOM"
 )
+
+func isBuiltinEntity(entity EntityType) bool {
+	switch entity {
+	case EntityPerson, EntityAddress, EntityEmail, EntityPhone, EntityIPAddress, EntityURL,
+		EntityINN, EntitySNILS, EntityPassport, EntityBankCard, EntityBankAccount, EntityDateOfBirth,
+		EntitySecretJWT, EntitySecretPrivateKey, EntitySecretAPIKey, EntityConnectionString:
+		return true
+	default:
+		return false
+	}
+}
+
+func observabilityEntity(entity EntityType) EntityType {
+	if isBuiltinEntity(entity) {
+		return entity
+	}
+	return EntityCustom
+}

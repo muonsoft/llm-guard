@@ -8,6 +8,7 @@ import (
 	"sort"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/muonsoft/errors"
 )
@@ -47,11 +48,15 @@ func WithDetector(detector Detector) Option {
 }
 
 type guardConfig struct {
-	entries         []detectorEntry
-	randomSource    io.Reader
-	secretAction    Action
-	secretActionSet bool
-	entityActions   map[EntityType]Action
+	entries                      []detectorEntry
+	randomSource                 io.Reader
+	secretAction                 Action
+	secretActionSet              bool
+	entityActions                map[EntityType]Action
+	observer                     Observer
+	observerSet                  bool
+	unsafeDevelopmentObserver    UnsafeDevelopmentObserver
+	unsafeDevelopmentObserverSet bool
 }
 
 type detectorEntry struct {
@@ -61,11 +66,13 @@ type detectorEntry struct {
 
 // Guard runs registered detectors concurrently and aggregates validated findings.
 type Guard struct {
-	detectors     []detectorEntry
-	randomSource  io.Reader
-	randomMu      sync.Mutex
-	secretAction  Action
-	entityActions map[EntityType]Action
+	detectors                 []detectorEntry
+	randomSource              io.Reader
+	randomMu                  sync.Mutex
+	secretAction              Action
+	entityActions             map[EntityType]Action
+	observer                  Observer
+	unsafeDevelopmentObserver UnsafeDevelopmentObserver
 }
 
 // New constructs an immutable Guard from the given options.
@@ -93,11 +100,18 @@ func New(options ...Option) (*Guard, error) {
 		secretAction = ActionBlock
 	}
 
+	observer := cfg.observer
+	if observer == nil {
+		observer = NoopObserver{}
+	}
+
 	return &Guard{
-		detectors:     entries,
-		randomSource:  randomSource,
-		secretAction:  secretAction,
-		entityActions: copyEntityActions(cfg.entityActions),
+		detectors:                 entries,
+		randomSource:              randomSource,
+		secretAction:              secretAction,
+		entityActions:             copyEntityActions(cfg.entityActions),
+		observer:                  observer,
+		unsafeDevelopmentObserver: cfg.unsafeDevelopmentObserver,
 	}, nil
 }
 
@@ -120,10 +134,42 @@ func (g *Guard) Detect(ctx context.Context, text string) ([]Finding, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	if err := validateInputText(text); err != nil {
+
+	started := time.Now()
+	inputBytes := len(text)
+	var (
+		outcome  Outcome
+		findings []Finding
+		err      error
+	)
+	defer func() {
+		event := Event{
+			Operation:    OperationDetect,
+			Outcome:      outcome,
+			InputBytes:   inputBytes,
+			OutputBytes:  0,
+			Duration:     time.Since(started),
+			FindingCount: len(findings),
+		}
+		if outcome == OutcomeSuccess {
+			event.EntityCounts = buildEntityCounts(findings)
+		}
+		g.publishSafeEvent(event)
+		g.publishUnsafeEvent(UnsafeDevelopmentEvent{
+			Operation: OperationDetect,
+			Outcome:   outcome,
+			Input:     text,
+			Output:    "",
+			Findings:  findings,
+		})
+	}()
+
+	if err = validateInputText(text); err != nil {
+		outcome = OutcomeError
 		return nil, err
 	}
 	if len(g.detectors) == 0 {
+		outcome = OutcomeSuccess
 		return nil, nil
 	}
 
@@ -140,10 +186,10 @@ func (g *Guard) Detect(ctx context.Context, text string) ([]Finding, error) {
 		go func(slot *detectorSlot, entry detectorEntry) {
 			defer wg.Done()
 
-			findings, err := entry.detector.Detect(detectCtx, text)
-			if err != nil {
-				slot.err = newDetectorError(entry.name, err)
-				if isContextCancellation(err) {
+			detectorFindings, detectErr := entry.detector.Detect(detectCtx, text)
+			if detectErr != nil {
+				slot.err = newDetectorError(entry.name, detectErr)
+				if isContextCancellation(detectErr) {
 					if derivedCancelFlag.Load() {
 						slot.derivedCancel = true
 					} else {
@@ -157,9 +203,9 @@ func (g *Guard) Detect(ctx context.Context, text string) ([]Finding, error) {
 				return
 			}
 
-			validated, err := validateFindings(text, entry.name, findings)
-			if err != nil {
-				slot.err = err
+			validated, validateErr := validateFindings(text, entry.name, detectorFindings)
+			if validateErr != nil {
+				slot.err = validateErr
 				derivedCancelFlag.Store(true)
 				cancel()
 				return
@@ -174,15 +220,19 @@ func (g *Guard) Detect(ctx context.Context, text string) ([]Finding, error) {
 
 	wg.Wait()
 
-	if err := ctx.Err(); err != nil {
+	if err = ctx.Err(); err != nil {
+		outcome = OutcomeError
 		return nil, err
 	}
 
-	if err := selectSlotError(slots); err != nil {
+	if err = selectSlotError(slots); err != nil {
+		outcome = OutcomeError
 		return nil, err
 	}
 
-	return aggregateFindings(slots), nil
+	findings = aggregateFindings(slots)
+	outcome = OutcomeSuccess
+	return findings, nil
 }
 
 func selectSlotError(slots []detectorSlot) error {

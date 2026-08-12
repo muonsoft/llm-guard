@@ -131,6 +131,33 @@ func ExampleGuard_maskRestore() {
 	// Output: true
 }
 
+func ExampleGuard_releaseCandidateFlow() {
+	guard, err := llmguard.New(
+		llmguard.WithDetector(llmguard.NewEmailDetector()),
+		llmguard.WithObserver(llmguard.ObserverFunc(func(event llmguard.Event) {
+			_ = event.Operation
+		})),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	prompt := "Contact a@b.co for details."
+	masked, err := guard.Mask(context.Background(), prompt)
+	if err != nil {
+		panic(err)
+	}
+
+	llmResponse := masked.Text
+	restored, err := guard.Restore(context.Background(), llmResponse, masked.Tokens)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(restored == prompt)
+	// Output: true
+}
+
 func ExampleGuard_secretDefaultBlock() {
 	guard, err := llmguard.New(
 		llmguard.WithDetector(llmguard.NewAPIKeyDetector()),
