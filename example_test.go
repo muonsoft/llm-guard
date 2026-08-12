@@ -36,6 +36,37 @@ func ExampleGuard_structuredPack() {
 	// Output: true
 }
 
+func ExampleGuard_customRegexpEntity() {
+	detector, err := llmguard.NewCustomRegexpDetector(llmguard.RegexDetectorConfig{
+		Name:       "employee_id",
+		Entity:     llmguard.EntityType("EMPLOYEE_ID"),
+		Pattern:    `EMP-[0-9]{6}`,
+		Confidence: 0.9,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	guard, err := llmguard.New(llmguard.WithDetector(detector))
+	if err != nil {
+		panic(err)
+	}
+
+	prompt := "Assign EMP-123456 to the project."
+	result, err := guard.Mask(context.Background(), prompt)
+	if err != nil {
+		panic(err)
+	}
+
+	restored, err := guard.Restore(context.Background(), result.Text, result.Tokens)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(restored == prompt)
+	// Output: true
+}
+
 func ExampleGuard_maskRestore() {
 	guard, err := llmguard.New(llmguard.WithDetector(llmguard.NewEmailDetector()))
 	if err != nil {

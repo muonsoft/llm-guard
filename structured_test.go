@@ -23,6 +23,9 @@ func newStructuredGuard(t *testing.T) *llmguard.Guard {
 		llmguard.WithDetector(llmguard.NewSNILSDetector()),
 		llmguard.WithDetector(llmguard.NewBankCardDetector()),
 		llmguard.WithDetector(llmguard.NewEmailDetector()),
+		llmguard.WithDetector(llmguard.NewPassportDetector()),
+		llmguard.WithDetector(llmguard.NewBankAccountDetector()),
+		llmguard.WithDetector(llmguard.NewDateOfBirthDetector()),
 	)
 	require.NoError(t, err)
 	return guard
@@ -38,12 +41,15 @@ func TestMixedStructured_WhenUnicodeText_ExpectMaskRestoreRoundTrip(t *testing.T
 		"ссылка https://example.com/path,",
 		"ИНН 7707083893,",
 		"СНИЛС 123-456-789 64,",
-		"карта 4111111111111111.",
+		"карта 4111111111111111,",
+		"паспорт 45 08 123456,",
+		"расчётный счёт 40702810900000000001,",
+		"дата рождения 12.10.1990.",
 	}, " ")
 
 	result, err := guard.Mask(context.Background(), text)
 	require.NoError(t, err)
-	require.Len(t, result.Findings, 6)
+	require.Len(t, result.Findings, 9)
 
 	restored, err := guard.Restore(context.Background(), result.Text, result.Tokens)
 	require.NoError(t, err)
@@ -54,7 +60,7 @@ func TestStructured_WhenConcurrentDetect_ExpectNoDataRace(t *testing.T) {
 	t.Parallel()
 
 	guard := newStructuredGuard(t)
-	text := "tel +7 999 123 45 67 ip 10.0.0.1 url https://example.com inn 7707083893 snils 123-456-789 64 card 4111111111111111"
+	text := "tel +7 999 123 45 67 ip 10.0.0.1 url https://example.com inn 7707083893 snils 123-456-789 64 card 4111111111111111 passport 45 08 123456 account 40702810900000000001 dob 12.10.1990"
 
 	const workers = 16
 	var wg sync.WaitGroup
@@ -178,6 +184,24 @@ func TestStructuredCorpusEvaluation_WhenPerEntityCases_ExpectCountsMatch(t *test
 		{entity: llmguard.EntityBankCard, text: "c 4111 1111 1111 1111", value: "4111 1111 1111 1111", category: corpusPositive},
 		{entity: llmguard.EntityBankCard, text: "c 4111111111111112", category: corpusNegative},
 		{entity: llmguard.EntityBankCard, text: "c 4111-1111 1111 1111", category: corpusMalformed},
+
+		{entity: llmguard.EntityPassport, text: "паспорт 45 08 123456", value: "45 08 123456", category: corpusPositive},
+		{entity: llmguard.EntityPassport, text: "паспорт РФ 4508 654321", value: "4508 654321", category: corpusPositive},
+		{entity: llmguard.EntityPassport, text: "4508 654321", category: corpusNegative},
+		{entity: llmguard.EntityPassport, text: "паспорт: серия 45 08, номер 123456", category: corpusNegative},
+		{entity: llmguard.EntityPassport, text: "паспорт 4508-654321", category: corpusMalformed},
+
+		{entity: llmguard.EntityBankAccount, text: "расчётный счёт 40702810900000000001", value: "40702810900000000001", category: corpusPositive},
+		{entity: llmguard.EntityBankAccount, text: "р/с 4070 2810 9000 0000 0001", value: "4070 2810 9000 0000 0001", category: corpusPositive},
+		{entity: llmguard.EntityBankAccount, text: "40702810900000000001", category: corpusNegative},
+		{entity: llmguard.EntityBankAccount, text: "договор 40702810900000000001", category: corpusNegative},
+		{entity: llmguard.EntityBankAccount, text: "расчётный счёт 11111111111111111111", category: corpusMalformed},
+
+		{entity: llmguard.EntityDateOfBirth, text: "дата рождения: 12.10.1990", value: "12.10.1990", category: corpusPositive},
+		{entity: llmguard.EntityDateOfBirth, text: "родился 3 марта 1985 года", value: "3 марта 1985", category: corpusPositive},
+		{entity: llmguard.EntityDateOfBirth, text: "встреча 12.10.2026", category: corpusNegative},
+		{entity: llmguard.EntityDateOfBirth, text: "договор от 12.10.2026", category: corpusNegative},
+		{entity: llmguard.EntityDateOfBirth, text: "дата рождения 31.02.1990", category: corpusMalformed},
 	}
 
 	allEntities := []llmguard.EntityType{
@@ -187,6 +211,9 @@ func TestStructuredCorpusEvaluation_WhenPerEntityCases_ExpectCountsMatch(t *test
 		llmguard.EntityINN,
 		llmguard.EntitySNILS,
 		llmguard.EntityBankCard,
+		llmguard.EntityPassport,
+		llmguard.EntityBankAccount,
+		llmguard.EntityDateOfBirth,
 	}
 	stats := make(map[llmguard.EntityType]*corpusStats, len(allEntities))
 	for _, entity := range allEntities {
