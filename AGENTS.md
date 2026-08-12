@@ -21,14 +21,14 @@ managed-директории для переиспользуемого пове�
 `herdr`, `openspec-*`, `closeout`, `agent-memory-usage`.
 
 `llm-guard-orchestration-experiment` — project-owned overlay в
-`project-skills/llm-guard-orchestration-experiment/SKILL.md`; он не управляется hub
+`.agents/skills/llm-guard-orchestration-experiment/SKILL.md`; он не управляется hub
 и не должен попадать в `skills.lock.yaml`. Overlay задаёт экспериментальные правила
 крупных milestone-срезов поверх managed `task-delegation`.
 
 ## Эксперимент оркестрации
 
 Перед нетривиальной реализацией полностью прочитать
-`project-skills/llm-guard-orchestration-experiment/SKILL.md` и использовать его как
+`.agents/skills/llm-guard-orchestration-experiment/SKILL.md` и использовать его как
 project-specific overlay:
 
 - GPT-5.6 Sol планирует, пишет task packet, проводит полный review и принимает работу;
