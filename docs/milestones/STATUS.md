@@ -18,7 +18,7 @@
 
 | ID | Задача / shipping boundary | Зависит от | Status | Change | Variant | Tasks | Primary | Corrections | Review | Verify | Specs | Archive | Evidence |
 |---|---|---|---|---|---|---:|---:|---:|---|---|---|---|---|
-| [M0](M0-core-detection-baseline.md) | Detection-only core и repository baseline | — | `planned` | — | C | — | 0 | 0 | — | — | — | — | — |
+| [M0](M0-core-detection-baseline.md) | Detection-only core и repository baseline | — | `archived` | `m0-core-detection-baseline` | C | 11/11 | 1 | 2 | `done` | `done` | `done` | `done` | `openspec/changes/archive/2026-08-12-m0-core-detection-baseline/`, `openspec/specs/core-detection/spec.md` |
 | [R0](R0-nlp-decision-gate.md) | NLP decision gate и reference harness | M0 | `planned` | — | C | — | 0 | 0 | — | — | — | — | — |
 | [M1](M1-reversible-email-slice.md) | EMAIL `Detect → Mask → Restore` | M0 | `planned` | — | C | — | 0 | 0 | — | — | — | — | — |
 | [M2](M2-structured-pii-pack.md) | Основной structured PII pack | M1 | `planned` | — | C | — | 0 | 0 | — | — | — | — | — |

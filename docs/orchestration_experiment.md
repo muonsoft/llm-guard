@@ -50,3 +50,4 @@ verification и дефектов после первого полного review
 
 | Дата | Milestone | Вариант | Primary | Corrections | Файлы / строки | Composer | Orchestration + review | Herdr state / recovery | Final verify | Дефекты после review | Примечания |
 |---|---|---:|---:|---:|---|---|---|---|---|---:|---|
+| 2026-08-12 | M0 | C | 1 | 2 | 26 / +1922 −2 | 7m43s | ≈13m | healthy / 0 timeouts / recovery не требовался / 0 orphaned panes | `go test`, `go vet`, `go test -race`, OpenSpec strict — PASS | 1 | Первый review выявил dropped standalone context errors; verification correction выявил missing validation cancel marker. |
