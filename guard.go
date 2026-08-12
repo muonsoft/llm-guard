@@ -47,8 +47,11 @@ func WithDetector(detector Detector) Option {
 }
 
 type guardConfig struct {
-	entries      []detectorEntry
-	randomSource io.Reader
+	entries         []detectorEntry
+	randomSource    io.Reader
+	secretAction    Action
+	secretActionSet bool
+	entityActions   map[EntityType]Action
 }
 
 type detectorEntry struct {
@@ -58,9 +61,11 @@ type detectorEntry struct {
 
 // Guard runs registered detectors concurrently and aggregates validated findings.
 type Guard struct {
-	detectors    []detectorEntry
-	randomSource io.Reader
-	randomMu     sync.Mutex
+	detectors     []detectorEntry
+	randomSource  io.Reader
+	randomMu      sync.Mutex
+	secretAction  Action
+	entityActions map[EntityType]Action
 }
 
 // New constructs an immutable Guard from the given options.
@@ -83,9 +88,16 @@ func New(options ...Option) (*Guard, error) {
 		randomSource = rand.Reader
 	}
 
+	secretAction := cfg.secretAction
+	if secretAction == "" {
+		secretAction = ActionBlock
+	}
+
 	return &Guard{
-		detectors:    entries,
-		randomSource: randomSource,
+		detectors:     entries,
+		randomSource:  randomSource,
+		secretAction:  secretAction,
+		entityActions: copyEntityActions(cfg.entityActions),
 	}, nil
 }
 

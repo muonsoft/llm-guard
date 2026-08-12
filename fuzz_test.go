@@ -3,6 +3,7 @@ package llmguard
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"strings"
 	"testing"
 	"unicode/utf8"
@@ -444,6 +445,107 @@ func (r *deterministicReader) Read(p []byte) (int, error) {
 		r.pos++
 	}
 	return len(p), nil
+}
+
+func FuzzDSNDetector(f *testing.F) {
+	f.Add("postgres://user:pass@localhost/db")
+	f.Add("https://user:pass@example.com")
+
+	detector := NewDSNDetector()
+	f.Fuzz(func(t *testing.T, text string) {
+		if !utf8.ValidString(text) {
+			return
+		}
+		fuzzDetectorInvariants(t, detector, text)
+	})
+}
+
+func FuzzJWTDetector(f *testing.F) {
+	f.Add(syntheticJWTFuzzSeed())
+	f.Add("not.a.jwt")
+
+	detector := NewJWTDetector()
+	f.Fuzz(func(t *testing.T, text string) {
+		if !utf8.ValidString(text) {
+			return
+		}
+		fuzzDetectorInvariants(t, detector, text)
+	})
+}
+
+func FuzzPEMDetector(f *testing.F) {
+	f.Add("-----BEGIN PRIVATE KEY-----\nAQIDBA==\n-----END PRIVATE KEY-----")
+	f.Add("-----BEGIN PUBLIC KEY-----\nAQIDBA==\n-----END PUBLIC KEY-----")
+
+	detector := NewPEMPrivateKeyDetector()
+	f.Fuzz(func(t *testing.T, text string) {
+		if !utf8.ValidString(text) {
+			return
+		}
+		fuzzDetectorInvariants(t, detector, text)
+	})
+}
+
+func FuzzAPIKeyDetector(f *testing.F) {
+	f.Add("ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+	f.Add("github_pat_AAAAAAAAAAAAAAAAAAAAAA_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+	f.Add("prefix-only")
+
+	detector := NewAPIKeyDetector()
+	f.Fuzz(func(t *testing.T, text string) {
+		if !utf8.ValidString(text) {
+			return
+		}
+		fuzzDetectorInvariants(t, detector, text)
+	})
+}
+
+func syntheticJWTFuzzSeed() string {
+	header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"HS256"}`))
+	payload := base64.RawURLEncoding.EncodeToString([]byte(`{"sub":"x"}`))
+	sig := base64.RawURLEncoding.EncodeToString([]byte("sig"))
+	return header + "." + payload + "." + sig
+}
+
+func fuzzDetectorInvariants(t *testing.T, detector Detector, text string) {
+	t.Helper()
+
+	first, err := detector.Detect(context.Background(), text)
+	if err != nil {
+		assertSafeDetectorError(t, err, text)
+		return
+	}
+
+	for _, finding := range first {
+		if finding.Start < 0 || finding.End <= finding.Start || finding.End > len(text) {
+			t.Fatalf("invalid span [%d,%d) for len=%d", finding.Start, finding.End, len(text))
+		}
+		if !utf8.RuneStart(text[finding.Start]) {
+			t.Fatalf("start not on rune boundary at %d", finding.Start)
+		}
+		if finding.End < len(text) && !utf8.RuneStart(text[finding.End]) {
+			t.Fatalf("end not on rune boundary at %d", finding.End)
+		}
+	}
+
+	second, err := detector.Detect(context.Background(), text)
+	if err != nil {
+		t.Fatalf("second detect failed: %v", err)
+	}
+	if !findingsEqual(first, second) {
+		t.Fatalf("non-deterministic detect output")
+	}
+}
+
+func assertSafeDetectorError(t *testing.T, err error, text string) {
+	t.Helper()
+	if err == nil {
+		return
+	}
+	msg := err.Error()
+	if strings.Contains(msg, text) && len(text) > 8 {
+		t.Fatalf("error leaks input")
+	}
 }
 
 func TestFuzzHelpers_DeterministicReader_ExpectStable(t *testing.T) {

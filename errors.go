@@ -21,6 +21,8 @@ var (
 	ErrNamespaceSource = errors.New("namespace source error")
 	// ErrNamespaceCollision indicates no collision-free namespace was found.
 	ErrNamespaceCollision = errors.New("namespace collision")
+	// ErrBlocked indicates Mask was aborted by a block policy action.
+	ErrBlocked = errors.New("blocked")
 )
 
 // InvalidConfigError describes why Guard construction failed.
@@ -146,4 +148,20 @@ func (e *NamespaceCollisionError) Is(target error) bool {
 
 func newNamespaceCollisionError() error {
 	return errors.Wrap(&NamespaceCollisionError{}, errors.SkipCaller())
+}
+
+// BlockError reports that Mask was aborted by policy without exposing input,
+// spans, entities, or occurrence metadata.
+type BlockError struct{}
+
+func (e *BlockError) Error() string {
+	return "operation blocked by policy"
+}
+
+func (e *BlockError) Is(target error) bool {
+	return errors.Is(ErrBlocked, target)
+}
+
+func newBlockError() error {
+	return errors.Wrap(&BlockError{}, errors.SkipCaller())
 }

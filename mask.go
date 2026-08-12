@@ -113,7 +113,28 @@ func (g *Guard) Mask(ctx context.Context, text string) (MaskResult, error) {
 		}, nil
 	}
 
-	tokens, replacements, err := g.buildMaskReplacements(ctx, text, resolved)
+	for _, finding := range resolved {
+		if g.actionForEntity(finding.Entity) == ActionBlock {
+			return MaskResult{}, newBlockError()
+		}
+	}
+
+	maskFindings := make([]Finding, 0, len(resolved))
+	for _, finding := range resolved {
+		if g.actionForEntity(finding.Entity) == ActionMask {
+			maskFindings = append(maskFindings, finding)
+		}
+	}
+
+	if len(maskFindings) == 0 {
+		return MaskResult{
+			Text:     text,
+			Findings: resolved,
+			Tokens:   newTokenSet(nil),
+		}, nil
+	}
+
+	tokens, replacements, err := g.buildMaskReplacements(ctx, text, maskFindings)
 	if err != nil {
 		return MaskResult{}, err
 	}
