@@ -2,7 +2,7 @@
 
 Lightweight open-source **LLM Guard for Go** — локальное обнаружение PII и секретов, обратимая маскировка и восстановление текста в LLM-пайплайнах.
 
-**Статус:** ранняя стадия (спецификация и инфраструктура разработки; публичного API пока нет).
+**Статус:** ранний MVP; доступен detection-only public API для custom detectors, built-in PII detectors и masking ещё не реализованы.
 
 ## Зачем
 
