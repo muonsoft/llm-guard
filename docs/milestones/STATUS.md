@@ -26,7 +26,7 @@
 | [M4](M4-russian-person.md) | Консервативный RU PERSON | M3, R0 | `archived` | `m4-russian-person` | C | 31/31 | 1 | 2 | `done` | `done` | `done` | `done` | `openspec/changes/archive/2026-08-12-m4-russian-person/`, `openspec/specs/russian-person/spec.md`, `docs/person-quality-report.md` |
 | [M5](M5-russian-address.md) | Композиционный RU ADDRESS | M4 | `archived` | `m5-russian-address` | C | 33/33 | 1 | 2 | `done` | `done` | `done` | `done` | `openspec/changes/archive/2026-08-12-m5-russian-address/`, `openspec/specs/russian-address/spec.md`, `openspec/specs/finding-resolution/spec.md`, `docs/address-quality-report.md` |
 | [M6](M6-secrets-and-policy.md) | Basic secrets и minimal action policy | M3 | `archived` | `m6-secrets-and-policy` | C | 33/33 | 1 | 2 | `done` | `done` | `done` | `done` | `openspec/changes/archive/2026-08-12-m6-secrets-and-policy/`, `openspec/specs/secret-detection/spec.md`, `openspec/specs/minimal-policy/spec.md`, `docs/secret-patterns.md` |
-| [M7](M7-safe-observability-rc.md) | Safe observability и MVP release candidate | M5, M6 | `planned` | — | C | — | 0 | 0 | — | — | — | — | — |
+| [M7](M7-safe-observability-rc.md) | Safe observability и MVP release candidate | M5, M6 | `archived` | `m7-safe-observability-rc` | C | 35/35 | 1 | 2 | `done` | `done` | `done` | `done` | `openspec/changes/archive/2026-08-12-m7-safe-observability-rc/`, `openspec/specs/safe-observability/spec.md`, `docs/evaluation-baseline.md`, `docs/benchmark-baseline.md`, `docs/safe-surface-audit.md` |
 | [M8](M8-oss-stabilization.md) | OSS-ready `v0.1.0` | M7 | `planned` | — | C | — | 0 | 0 | — | — | — | — | — |
 
 ## Текущая сессия
