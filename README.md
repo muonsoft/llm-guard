@@ -2,7 +2,7 @@
 
 Lightweight open-source **LLM Guard for Go** — локальное обнаружение PII и секретов, обратимая маскировка и восстановление текста в LLM-пайплайнах.
 
-**Статус:** ранний MVP; доступны built-in detectors для EMAIL, conservative RU PERSON, compositional RU ADDRESS, structured pack (PHONE, IP_ADDRESS, URL, INN, SNILS, BANK_CARD, PASSPORT, BANK_ACCOUNT, contextual DATE_OF_BIRTH), `CustomRegexpDetector` для string entity, deterministic resolver, reversible masking/restore и detection-only API для custom Go detectors.
+**Статус:** ранний MVP; доступны built-in detectors для EMAIL, conservative RU PERSON, compositional RU ADDRESS, structured pack (PHONE, IP_ADDRESS, URL, INN, SNILS, BANK_CARD, PASSPORT, BANK_ACCOUNT, contextual DATE_OF_BIRTH), conservative secret pack (JWT, PEM private key, provider API keys, credential-bearing DSN), immutable allow/mask/block policy, `CustomRegexpDetector` для string entity, deterministic resolver, reversible masking/restore и detection-only API для custom Go detectors.
 
 ## Зачем
 
@@ -29,6 +29,7 @@ App → Guard (mask) → LLM → Guard (restore) → App
 | [docs/light_llm_guard_go_mvp_plan.md](docs/light_llm_guard_go_mvp_plan.md) | Черновик MVP-плана |
 | [docs/milestones/](docs/milestones/) | Milestone scope, status dashboard и orchestration runbook |
 | [openspec/](openspec/) | Spec-driven workflow (OpenSpec) |
+| [docs/secret-patterns.md](docs/secret-patterns.md) | Versioned secret pattern snapshot and update procedure |
 | [AGENTS.md](AGENTS.md) | Инструкции для coding agents |
 
 ## Модуль
@@ -122,6 +123,27 @@ detector, err := llmguard.NewCustomRegexpDetector(llmguard.RegexDetectorConfig{
     Pattern:    `EMP-[0-9]{6}`,
     Confidence: 0.9,
 })
+```
+
+### Secrets and policy (M6)
+
+Conservative offline detectors for structurally valid credentials plus a minimal immutable policy layer:
+
+| Detector | Entity | Default action |
+|----------|--------|----------------|
+| `NewJWTDetector` | `SECRET_JWT` | `block` |
+| `NewPEMPrivateKeyDetector` | `SECRET_PRIVATE_KEY` | `block` |
+| `NewAPIKeyDetector` | `SECRET_API_KEY` | `block` |
+| `NewDSNDetector` | `CONNECTION_STRING` | `block` |
+
+Secrets block `Mask` by default (zero result, checkable `ErrBlocked`). Use `WithSecretAction(ActionMask)` for reversible masking or `WithEntityAction` for per-entity overrides. Pattern shapes and snapshot date are documented in [docs/secret-patterns.md](docs/secret-patterns.md).
+
+```go
+guard, err := llmguard.New(
+    llmguard.WithDetector(llmguard.NewJWTDetector()),
+    llmguard.WithDetector(llmguard.NewAPIKeyDetector()),
+    llmguard.WithSecretAction(llmguard.ActionMask), // explicit opt-in to mask secrets
+)
 ```
 
 ## Разработка

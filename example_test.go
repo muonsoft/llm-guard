@@ -130,3 +130,44 @@ func ExampleGuard_maskRestore() {
 	fmt.Println(restored == prompt)
 	// Output: true
 }
+
+func ExampleGuard_secretDefaultBlock() {
+	guard, err := llmguard.New(
+		llmguard.WithDetector(llmguard.NewAPIKeyDetector()),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	// Synthetic token for illustration only; never use real credentials in examples.
+	prompt := "export KEY=ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+	_, err = guard.Mask(context.Background(), prompt)
+	if err != nil {
+		fmt.Println("blocked")
+	}
+	// Output: blocked
+}
+
+func ExampleGuard_secretExplicitMask() {
+	guard, err := llmguard.New(
+		llmguard.WithDetector(llmguard.NewAPIKeyDetector()),
+		llmguard.WithSecretAction(llmguard.ActionMask),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	prompt := "export KEY=ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+	result, err := guard.Mask(context.Background(), prompt)
+	if err != nil {
+		panic(err)
+	}
+
+	restored, err := guard.Restore(context.Background(), result.Text, result.Tokens)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(restored == prompt)
+	// Output: true
+}
