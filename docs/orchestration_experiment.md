@@ -12,12 +12,19 @@
 | Вариант | Гранулярность | Транспорт |
 |---|---|---|
 | A | Текущие defaults `task-delegation` | `cursor-executor` |
-| B | Один primary job на green milestone | `cursor-executor` |
-| C | Один primary job на green milestone | Долгоживущий Composer через Herdr |
+| B — control | Один primary job на green milestone | `cursor-executor` |
+| C — primary | Один primary job на green milestone | Composer через Herdr на время milestone |
 
 Варианты нельзя смешивать внутри milestone или одновременно запускать в одном
-worktree. Вариант B используется по умолчанию; C разрешён только после успешного
-Herdr preflight.
+worktree. Вариант C используется по умолчанию после успешного Herdr preflight;
+B служит контролем с той же гранулярностью. При блокировке C нельзя переключаться
+на B внутри milestone — следующий вариант объявляется только после явного
+завершения или отказа от текущего milestone.
+
+Каждый C packet пишет ephemeral handoff в
+`.agent-orchestration/results/<milestone>.md`. Sol классифицирует transport как
+`healthy`, `degraded` или `blocked` по правилам project overlay и принимает
+результат только после полного review diff и независимой проверки.
 
 ## Что измерять
 
@@ -27,16 +34,19 @@ Herdr preflight.
 - wall time постановки, ожидания, review и независимой проверки Sol;
 - результат focused и final verification;
 - дефекты, найденные после первого полного review;
-- блокировки, таймауты и ручные вмешательства.
+- transport state Herdr: `healthy`, `degraded` или `blocked`;
+- control-call timeouts, время восстановления и orphaned panes;
+- блокировки и ручные вмешательства.
 
 ## Критерий успеха
 
-B или C предпочтительнее A, если уменьшаются число primary jobs и суммарное время
-оркестрации, а доля failed final verification и число дефектов после первого
-полного review не растут. Вывод делать не раньше чем после трёх сопоставимых
-milestones на вариант.
+C сравнивается прежде всего с B: оба варианта используют одинаковые крупные
+milestone-срезы, поэтому разница показывает стоимость и пользу Herdr. C успешен,
+если уменьшает orchestration overhead без роста blocked milestones, failed final
+verification и дефектов после первого полного review. Вывод делать не раньше чем
+после трёх сопоставимых milestones на вариант.
 
 ## Журнал результатов
 
-| Дата | Milestone | Вариант | Primary | Corrections | Файлы / строки | Composer | Orchestration + review | Final verify | Дефекты после review | Примечания |
-|---|---|---:|---:|---:|---|---|---|---|---:|---|
+| Дата | Milestone | Вариант | Primary | Corrections | Файлы / строки | Composer | Orchestration + review | Herdr state / recovery | Final verify | Дефекты после review | Примечания |
+|---|---|---:|---:|---:|---|---|---|---|---|---:|---|

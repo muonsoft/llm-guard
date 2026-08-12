@@ -39,8 +39,14 @@ project-specific overlay:
 - все замечания полного review отправляются одним correction packet.
 
 Варианты и журнал метрик описаны в `docs/orchestration_experiment.md`. По умолчанию
-использовать вариант B (крупные срезы через `cursor-executor`). Вариант C использует
-долгоживущий Composer через Herdr и не включается при неуспешном preflight.
+использовать основной экспериментальный вариант C: один Composer через Herdr на
+primary job и correction cycle внутри milestone. Вариант B с той же крупной
+гранулярностью через `cursor-executor` служит контролем. Варианты нельзя менять
+внутри milestone; C не включается при неуспешном preflight.
+
+Для C каждый task packet должен указывать ephemeral result-файл в
+`.agent-orchestration/results/`. Состояния `healthy`, `degraded` и `blocked`,
+правила восстановления и критерии acceptance определены в project overlay.
 
 **Preflight для A/B**
 
