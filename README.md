@@ -2,7 +2,7 @@
 
 Lightweight open-source **LLM Guard for Go** — локальное обнаружение PII и секретов, обратимая маскировка и восстановление текста в LLM-пайплайнах.
 
-**Статус:** ранний MVP; доступны built-in detectors для EMAIL и structured pack (PHONE, IP_ADDRESS, URL, INN, SNILS, BANK_CARD), deterministic resolver, reversible masking/restore и detection-only API для custom detectors.
+**Статус:** ранний MVP; доступны built-in detectors для EMAIL и structured pack (PHONE, IP_ADDRESS, URL, INN, SNILS, BANK_CARD, PASSPORT, BANK_ACCOUNT, contextual DATE_OF_BIRTH), `CustomRegexpDetector` для string entity, deterministic resolver, reversible masking/restore и detection-only API для custom Go detectors.
 
 ## Зачем
 
@@ -70,6 +70,25 @@ restored, err := guard.Restore(ctx, llmResponse, result.Tokens)
 ```
 
 `TokenSet` принадлежит caller и не раскрывает чувствительные значения через `String`, `GoString` или JSON.
+
+### Structured forms (M3)
+
+| Entity | Supported forms | Validation limits |
+|--------|-----------------|-------------------|
+| PASSPORT | `NNNN NNNNNN`, `NN NN NNNNNN` after RU marker (`паспорт`, `паспорт РФ`, `серия`, `паспортные данные`) | No checksum; separated `серия …, номер …` unsupported |
+| BANK_ACCOUNT | 20 ASCII digits or five `####` groups after RU marker (`р/с`, `расчётный счёт`, …) | Context-first without BIK; same-line BIK triggers checksum when present |
+| DATE_OF_BIRTH | `DD.MM.YYYY`, `DD/MM/YYYY`, or `D <month> YYYY` after birth marker (`дата рождения`, `д.р.`, `родился`, `родилась`) | Calendar validity only; ordinary/contract dates ignored |
+
+Custom regexp boundaries are caller-owned; the adapter returns full matches without implicit word boundaries.
+
+```go
+detector, err := llmguard.NewCustomRegexpDetector(llmguard.RegexDetectorConfig{
+    Name:       "employee_id",
+    Entity:     llmguard.EntityType("EMPLOYEE_ID"),
+    Pattern:    `EMP-[0-9]{6}`,
+    Confidence: 0.9,
+})
+```
 
 ## Разработка
 

@@ -19,6 +19,9 @@ func FuzzStructuredDetectorsInvariants(f *testing.F) {
 		{"inn", "7707083893"},
 		{"snils", "123-456-789 64"},
 		{"bank_card", "4111111111111111"},
+		{"passport", "паспорт 45 08 123456"},
+		{"bank_account", "расчётный счёт 40702810900000000001"},
+		{"date_of_birth", "дата рождения 12.10.1990"},
 	}
 	for _, seed := range seeds {
 		f.Add(seed.name, seed.text)
@@ -31,14 +34,20 @@ func FuzzStructuredDetectorsInvariants(f *testing.F) {
 		NewINNDetector(),
 		NewSNILSDetector(),
 		NewBankCardDetector(),
+		NewPassportDetector(),
+		NewBankAccountDetector(),
+		NewDateOfBirthDetector(),
 	}
 	detectorByName := map[string]Detector{
-		"phone":     detectors[0],
-		"ip":        detectors[1],
-		"url":       detectors[2],
-		"inn":       detectors[3],
-		"snils":     detectors[4],
-		"bank_card": detectors[5],
+		"phone":         detectors[0],
+		"ip":            detectors[1],
+		"url":           detectors[2],
+		"inn":           detectors[3],
+		"snils":         detectors[4],
+		"bank_card":     detectors[5],
+		"passport":      detectors[6],
+		"bank_account":  detectors[7],
+		"date_of_birth": detectors[8],
 	}
 
 	f.Fuzz(func(t *testing.T, name, text string) {
@@ -117,6 +126,91 @@ func FuzzStructuredDetectorsInvariants(f *testing.F) {
 			}
 			if !findingsEqual(resolved, reversedResolved) {
 				t.Fatalf("non-deterministic resolve output on reversal")
+			}
+		}
+	})
+}
+
+func FuzzCustomRegexpDetectorInvariants(f *testing.F) {
+	f.Add("EMP-123456")
+	f.Add("prefix EMP-1 suffix")
+
+	detector, err := NewCustomRegexpDetector(RegexDetectorConfig{
+		Name:       "employee_id",
+		Entity:     EntityType("EMPLOYEE_ID"),
+		Pattern:    `EMP-\d+`,
+		Confidence: 0.8,
+	})
+	if err != nil {
+		f.Fatalf("new detector: %v", err)
+	}
+
+	zeroWidthDetector, err := NewCustomRegexpDetector(RegexDetectorConfig{
+		Name:       "zero_width",
+		Entity:     EntityType("ZERO_WIDTH"),
+		Pattern:    `(?m)^`,
+		Confidence: 0.5,
+	})
+	if err != nil {
+		f.Fatalf("new zero-width detector: %v", err)
+	}
+
+	f.Fuzz(func(t *testing.T, text string) {
+		if !utf8.ValidString(text) {
+			return
+		}
+
+		zeroWidthFindings, err := zeroWidthDetector.Detect(context.Background(), text)
+		if err != nil {
+			return
+		}
+		if len(zeroWidthFindings) != 0 {
+			t.Fatalf("zero-width detector returned findings")
+		}
+
+		first, err := detector.Detect(context.Background(), text)
+		if err != nil {
+			return
+		}
+
+		for _, finding := range first {
+			if finding.Start < 0 || finding.End <= finding.Start || finding.End > len(text) {
+				t.Fatalf("invalid span [%d,%d) for len=%d", finding.Start, finding.End, len(text))
+			}
+			if finding.Start == finding.End {
+				t.Fatalf("zero-width finding")
+			}
+			if !utf8.RuneStart(text[finding.Start]) {
+				t.Fatalf("start not on rune boundary at %d", finding.Start)
+			}
+			if finding.End < len(text) && !utf8.RuneStart(text[finding.End]) {
+				t.Fatalf("end not on rune boundary at %d", finding.End)
+			}
+		}
+
+		second, err := detector.Detect(context.Background(), text)
+		if err != nil {
+			t.Fatalf("second detect failed: %v", err)
+		}
+		if !findingsEqual(first, second) {
+			t.Fatalf("non-deterministic detect output")
+		}
+
+		resolvedInput := append([]Finding(nil), first...)
+		for i := range resolvedInput {
+			if resolvedInput[i].Detector == "" {
+				resolvedInput[i].Detector = "employee_id"
+			}
+		}
+		resolved, resolveErr := Resolve(text, resolvedInput)
+		if resolveErr != nil {
+			t.Fatalf("resolve failed: %v", resolveErr)
+		}
+		for i := 0; i < len(resolved); i++ {
+			for j := i + 1; j < len(resolved); j++ {
+				if intervalsOverlap(resolved[i].Start, resolved[i].End, resolved[j].Start, resolved[j].End) {
+					t.Fatalf("resolved findings overlap")
+				}
 			}
 		}
 	})
