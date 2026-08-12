@@ -2,7 +2,7 @@ version: 3
 hub:
     repo: https://github.com/muonsoft/skills.git
     ref: main
-    commit: d446e441a0fa670f9decf9d1d2823c7ad9bbb60f
+    commit: 3335dae04f91efedf4efacc46fb1572a1b7a2534
 preset: library
 target_path: .agents/skills
 selected_paths:
