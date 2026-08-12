@@ -1,0 +1,42 @@
+schema: spec-driven
+
+context: |
+  ## Проект: llm-guard (Light LLM Guard for Go)
+
+  Open-source Go-библиотека для локальной защиты LLM-пайплайнов: обнаружение PII/secrets,
+  обратимая маскировка, восстановление placeholders. Приоритет MVP: PII-first, RU-first,
+  pure Go, embeddable library, CPU-only, без обязательных внешних API.
+
+  ## Артефакты и план
+
+  - Черновик MVP-плана: `docs/light_llm_guard_go_mvp_plan.md` (исходная спецификация до
+    переноса в OpenSpec)
+  - Канонические требования: `openspec/specs/<slug>/spec.md`
+  - Модуль: `github.com/muonsoft/llm-guard`
+
+  ## Принципы
+
+  - Library-first: core API не зависит от proxy/adapters (они — late MVP)
+  - Безопасный audit/logging профиль по умолчанию (без хранения исходных PII)
+  - Расширяемые detectors через публичный Go-интерфейс
+  - Следовать скиллам hub: `golang-*`, `backend-structure`, `api-conventions` (для будущих adapters)
+
+rules:
+  proposal:
+    - Писать на русском языке
+    - "Ссылаться на capability slugs в openspec/specs/<slug>/"
+    - "Указывать, что из docs/light_llm_guard_go_mvp_plan.md переносится или уточняется"
+  design:
+    - Писать на русском языке
+    - "Обязательные секции: Context, Goals, Decisions, Non-Goals"
+    - "Каждое решение — выбор и rationale; core API не должен тянуть proxy-зависимости"
+  tasks:
+    - Писать на русском языке
+    - "Группировать по областям: core, detectors, masking, audit, tests, docs"
+    - "Каждый пункт — выполнимый за 2 часа или меньше"
+    - "В verification указывать точные команды (go test ./..., go vet, и т.д.)"
+  specs:
+    - Писать на русском языке
+    - "Секции MUST: ## Purpose и ## Requirements"
+    - "Требования: ### Requirement:; сценарии: #### Scenario: или #### Сценарий:"
+    - В тексте требований использовать SHALL или MUST

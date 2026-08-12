@@ -4,6 +4,8 @@ hub:
     ref: main
     commit: 3335dae04f91efedf4efacc46fb1572a1b7a2534
 preset: library
+include:
+    - tag: openspec
 target_path: .agents/skills
 selected_paths:
     - agent-memory-usage
@@ -17,6 +19,17 @@ selected_paths:
     - golang-tests
     - golang-validation
     - mcp-tool-input-schema
+    - openspec-apply-change
+    - openspec-archive-change
+    - openspec-bulk-archive-change
+    - openspec-continue-change
+    - openspec-explore
+    - openspec-ff-change
+    - openspec-new-change
+    - openspec-onboard
+    - openspec-propose
+    - openspec-sync-specs
+    - openspec-verify-change
     - runnable-background-processes
     - task-delegation
 skills:
@@ -42,6 +55,28 @@ skills:
         upstream_hash: sha256:376162500fef4d60e8726cf6cc34c38e61b32c7cc8aacc2105a4ae1d738da17d
     mcp-tool-input-schema:
         upstream_hash: sha256:313b1ce465ff6894ac82292d194155846c27b4fadab89e1b71899acdb65ad452
+    openspec-apply-change:
+        upstream_hash: sha256:9796c7593b38fc0399c4d5b9006f50b179801518810878ac0357a67704d1f969
+    openspec-archive-change:
+        upstream_hash: sha256:54e94c94303fb85ca648c9d8cafd7f652e1522622733a8f6ccc430b179b91c80
+    openspec-bulk-archive-change:
+        upstream_hash: sha256:3fe5f395878941b7ced6a12a935f2b0b2edf3660b1e78e11f063ac20111625b9
+    openspec-continue-change:
+        upstream_hash: sha256:21653948c000f3612e3c3bfed18f78b9705c3ca07c4e530e6cad6652ec85c0c3
+    openspec-explore:
+        upstream_hash: sha256:674eaca19455e9dff0c07c7eb20b737b47b99c6e484d16dbd9a4379e82e06746
+    openspec-ff-change:
+        upstream_hash: sha256:72896e84404285171834456115fd10ae23db747713fe3d2e3898eb379592c363
+    openspec-new-change:
+        upstream_hash: sha256:0ca7842d48f0cbc80a9b441267c244da5c7c31a5d623b4d9ebc5ec2fc40a75d9
+    openspec-onboard:
+        upstream_hash: sha256:a20024101e6267ae452d7840117d424e7e9ca7acc72a14574b53c5ece92d9b0e
+    openspec-propose:
+        upstream_hash: sha256:6adda8de85ba9b1feb2a32c954ae4a9e2abf59ed98227018fd85b1c82b3e4399
+    openspec-sync-specs:
+        upstream_hash: sha256:f72f06bd8b7a5e7b56a1423205ebd357e2c3c29c55c37eaa8f8b7f3f3d3389ca
+    openspec-verify-change:
+        upstream_hash: sha256:741266a1a024fcf963d8c2ee179fc4e6e545213d1b32e8a2c05cfeb3968d67bf
     runnable-background-processes:
         upstream_hash: sha256:4dc5a488f4ce172607270d1130651ce75df2704fe9738757ddc5e214e7abf672
     task-delegation:
