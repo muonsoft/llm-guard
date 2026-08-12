@@ -157,10 +157,10 @@ func intervalsOverlap(aStart, aEnd, bStart, bEnd int) bool {
 
 func entityPriority(entity EntityType) int {
 	switch entity {
+	case EntityURL:
+		return 110
 	case EntityEmail:
 		return 100
-	case EntityURL:
-		return 90
 	case EntityAddress:
 		return 80
 	case EntityBankCard:
