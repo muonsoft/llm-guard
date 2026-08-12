@@ -54,4 +54,4 @@ openspec doctor
 
 ## Лицензия
 
-TBD
+[MIT](LICENSE) — Copyright (c) 2026 MuonSoft
