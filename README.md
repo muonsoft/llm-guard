@@ -2,7 +2,7 @@
 
 Lightweight open-source **LLM Guard for Go** — локальное обнаружение PII и секретов, обратимая маскировка и восстановление текста в LLM-пайплайнах.
 
-**Статус:** ранний MVP; доступен detection-only public API для custom detectors, built-in PII detectors и masking ещё не реализованы.
+**Статус:** ранний MVP; доступны built-in EMAIL detector, deterministic resolver, reversible masking/restore и detection-only API для custom detectors.
 
 ## Зачем
 
@@ -42,6 +42,26 @@ module github.com/muonsoft/llm-guard
 
 go 1.26
 ```
+
+## Использование
+
+```go
+guard, err := llmguard.New(llmguard.WithDetector(llmguard.NewEmailDetector()))
+if err != nil {
+    return err
+}
+
+result, err := guard.Mask(ctx, prompt)
+if err != nil {
+    return err
+}
+
+llmResponse := callLLM(result.Text)
+
+restored, err := guard.Restore(ctx, llmResponse, result.Tokens)
+```
+
+`TokenSet` принадлежит caller и не раскрывает чувствительные значения через `String`, `GoString` или JSON.
 
 ## Разработка
 
