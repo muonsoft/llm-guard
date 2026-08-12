@@ -2,6 +2,8 @@ package llmguard
 
 import (
 	"context"
+	"crypto/rand"
+	"io"
 	"reflect"
 	"sort"
 	"sync"
@@ -45,7 +47,8 @@ func WithDetector(detector Detector) Option {
 }
 
 type guardConfig struct {
-	entries []detectorEntry
+	entries      []detectorEntry
+	randomSource io.Reader
 }
 
 type detectorEntry struct {
@@ -55,7 +58,9 @@ type detectorEntry struct {
 
 // Guard runs registered detectors concurrently and aggregates validated findings.
 type Guard struct {
-	detectors []detectorEntry
+	detectors    []detectorEntry
+	randomSource io.Reader
+	randomMu     sync.Mutex
 }
 
 // New constructs an immutable Guard from the given options.
@@ -73,7 +78,15 @@ func New(options ...Option) (*Guard, error) {
 	entries := make([]detectorEntry, len(cfg.entries))
 	copy(entries, cfg.entries)
 
-	return &Guard{detectors: entries}, nil
+	randomSource := cfg.randomSource
+	if randomSource == nil {
+		randomSource = rand.Reader
+	}
+
+	return &Guard{
+		detectors:    entries,
+		randomSource: randomSource,
+	}, nil
 }
 
 type indexedFinding struct {
@@ -226,13 +239,21 @@ func aggregateFindings(slots []detectorSlot) []Finding {
 }
 
 func isNilDetector(detector Detector) bool {
-	if detector == nil {
+	return isNilInterfaceValue(detector)
+}
+
+func isNilReader(reader io.Reader) bool {
+	return isNilInterfaceValue(reader)
+}
+
+func isNilInterfaceValue(value any) bool {
+	if value == nil {
 		return true
 	}
-	value := reflect.ValueOf(detector)
-	switch value.Kind() {
+	v := reflect.ValueOf(value)
+	switch v.Kind() {
 	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
-		return value.IsNil()
+		return v.IsNil()
 	default:
 		return false
 	}

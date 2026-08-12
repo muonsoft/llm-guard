@@ -15,6 +15,12 @@ var (
 	ErrInvalidFinding = errors.New("invalid finding")
 	// ErrDetector indicates a detector returned an error during Detect.
 	ErrDetector = errors.New("detector error")
+	// ErrInvalidTokenSet indicates Restore received a nil or unusable TokenSet.
+	ErrInvalidTokenSet = errors.New("invalid token set")
+	// ErrNamespaceSource indicates namespace entropy could not be read.
+	ErrNamespaceSource = errors.New("namespace source error")
+	// ErrNamespaceCollision indicates no collision-free namespace was found.
+	ErrNamespaceCollision = errors.New("namespace collision")
 )
 
 // InvalidConfigError describes why Guard construction failed.
@@ -86,4 +92,58 @@ func newDetectorError(detector string, cause error) error {
 		Detector: detector,
 		cause:    cause,
 	}, errors.SkipCaller())
+}
+
+// InvalidTokenSetError reports why a TokenSet was rejected without exposing
+// token, namespace, or mapping content.
+type InvalidTokenSetError struct {
+	Reason string
+}
+
+func (e *InvalidTokenSetError) Error() string {
+	return fmt.Sprintf("invalid token set: %s", e.Reason)
+}
+
+func (e *InvalidTokenSetError) Is(target error) bool {
+	return errors.Is(ErrInvalidTokenSet, target)
+}
+
+func newInvalidTokenSetError(reason string) error {
+	return errors.Wrap(&InvalidTokenSetError{Reason: reason}, errors.SkipCaller())
+}
+
+// NamespaceSourceError wraps a failure to read namespace entropy.
+type NamespaceSourceError struct {
+	cause error
+}
+
+func (e *NamespaceSourceError) Error() string {
+	return "namespace source error"
+}
+
+func (e *NamespaceSourceError) Unwrap() error {
+	return e.cause
+}
+
+func (e *NamespaceSourceError) Is(target error) bool {
+	return errors.Is(ErrNamespaceSource, target)
+}
+
+func newNamespaceSourceError(cause error) error {
+	return errors.Wrap(&NamespaceSourceError{cause: cause}, errors.SkipCaller())
+}
+
+// NamespaceCollisionError reports that no collision-free namespace was found.
+type NamespaceCollisionError struct{}
+
+func (e *NamespaceCollisionError) Error() string {
+	return "namespace collision"
+}
+
+func (e *NamespaceCollisionError) Is(target error) bool {
+	return errors.Is(ErrNamespaceCollision, target)
+}
+
+func newNamespaceCollisionError() error {
+	return errors.Wrap(&NamespaceCollisionError{}, errors.SkipCaller())
 }

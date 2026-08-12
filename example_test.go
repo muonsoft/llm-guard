@@ -2,43 +2,29 @@ package llmguard_test
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/muonsoft/llm-guard"
 )
 
-type atSignDetector struct{}
-
-func (atSignDetector) Name() string { return "at-sign" }
-
-func (atSignDetector) Detect(_ context.Context, text string) ([]llmguard.Finding, error) {
-	for i := 0; i < len(text); i++ {
-		if text[i] == '@' {
-			return []llmguard.Finding{{
-				Entity:     llmguard.EntityEmail,
-				Start:      i,
-				End:        i + 1,
-				Confidence: 0.8,
-			}}, nil
-		}
-	}
-	return nil, nil
-}
-
-func ExampleNew_customDetector() {
-	guard, err := llmguard.New(llmguard.WithDetector(atSignDetector{}))
+func ExampleGuard_maskRestore() {
+	guard, err := llmguard.New(llmguard.WithDetector(llmguard.NewEmailDetector()))
 	if err != nil {
 		panic(err)
 	}
 
-	findings, err := guard.Detect(context.Background(), "contact a@example.com")
+	prompt := "Contact a@b.co for details."
+	result, err := guard.Mask(context.Background(), prompt)
 	if err != nil {
 		panic(err)
 	}
 
-	for _, finding := range findings {
-		_ = finding.Entity
-		_ = finding.Start
-		_ = finding.End
+	llmResponse := result.Text
+	restored, err := guard.Restore(context.Background(), llmResponse, result.Tokens)
+	if err != nil {
+		panic(err)
 	}
-	// Output:
+
+	fmt.Println(restored == prompt)
+	// Output: true
 }
