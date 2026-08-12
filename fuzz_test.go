@@ -8,6 +8,120 @@ import (
 	"unicode/utf8"
 )
 
+func FuzzStructuredDetectorsInvariants(f *testing.F) {
+	seeds := []struct {
+		name string
+		text string
+	}{
+		{"phone", "+7 (999) 123-45-67"},
+		{"ip", "192.0.2.42"},
+		{"url", "https://example.com/a?q=1"},
+		{"inn", "7707083893"},
+		{"snils", "123-456-789 64"},
+		{"bank_card", "4111111111111111"},
+	}
+	for _, seed := range seeds {
+		f.Add(seed.name, seed.text)
+	}
+
+	detectors := []Detector{
+		NewPhoneDetector(),
+		NewIPDetector(),
+		NewURLDetector(),
+		NewINNDetector(),
+		NewSNILSDetector(),
+		NewBankCardDetector(),
+	}
+	detectorByName := map[string]Detector{
+		"phone":     detectors[0],
+		"ip":        detectors[1],
+		"url":       detectors[2],
+		"inn":       detectors[3],
+		"snils":     detectors[4],
+		"bank_card": detectors[5],
+	}
+
+	f.Fuzz(func(t *testing.T, name, text string) {
+		if !utf8.ValidString(text) {
+			return
+		}
+
+		detector, ok := detectorByName[name]
+		if !ok {
+			idx := 0
+			for _, r := range name {
+				idx = (idx + int(r)) % len(detectors)
+			}
+			detector = detectors[idx]
+		}
+
+		first, err := detector.Detect(context.Background(), text)
+		if err != nil {
+			return
+		}
+
+		for _, finding := range first {
+			if finding.Start < 0 || finding.End <= finding.Start || finding.End > len(text) {
+				t.Fatalf("invalid span [%d,%d) for len=%d", finding.Start, finding.End, len(text))
+			}
+			if !utf8.RuneStart(text[finding.Start]) {
+				t.Fatalf("start not on rune boundary at %d", finding.Start)
+			}
+			if finding.End < len(text) && !utf8.RuneStart(text[finding.End]) {
+				t.Fatalf("end not on rune boundary at %d", finding.End)
+			}
+			if finding.Confidence < 0 || finding.Confidence > 1 {
+				t.Fatalf("confidence out of range")
+			}
+		}
+
+		second, err := detector.Detect(context.Background(), text)
+		if err != nil {
+			t.Fatalf("second detect failed: %v", err)
+		}
+		if !findingsEqual(first, second) {
+			t.Fatalf("non-deterministic detect output")
+		}
+
+		resolved, resolveErr := Resolve(text, first)
+		if resolveErr != nil {
+			t.Fatalf("resolve failed: %v", resolveErr)
+		}
+		for i := 0; i < len(resolved); i++ {
+			for j := i + 1; j < len(resolved); j++ {
+				if intervalsOverlap(resolved[i].Start, resolved[i].End, resolved[j].Start, resolved[j].End) {
+					t.Fatalf("resolved findings overlap")
+				}
+			}
+		}
+
+		if len(first) > 0 {
+			seed := 0
+			if len(text) > 0 {
+				seed = int(text[0])
+			}
+			shuffled, err := Resolve(text, shuffleFindings(first, seed))
+			if err != nil {
+				t.Fatalf("permutation resolve failed: %v", err)
+			}
+			if !findingsEqual(resolved, shuffled) {
+				t.Fatalf("non-deterministic resolve output on shuffle")
+			}
+			reversed := append([]Finding(nil), first...)
+			for i, j := 0, len(reversed)-1; i < j; i, j = i+1, j-1 {
+				reversed[i], reversed[j] = reversed[j], reversed[i]
+			}
+			reversedResolved, err := Resolve(text, reversed)
+			if err != nil {
+				t.Fatalf("reversed resolve failed: %v", err)
+			}
+			if !findingsEqual(resolved, reversedResolved) {
+				t.Fatalf("non-deterministic resolve output on reversal")
+			}
+		}
+	})
+}
+
 func FuzzEmailDetectorBoundaries(f *testing.F) {
 	f.Add("a@b.co")
 	f.Add("Напишите (Ivan.Petrov+sales@example-domain.ru).")

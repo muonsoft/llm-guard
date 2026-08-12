@@ -2,7 +2,7 @@
 
 Lightweight open-source **LLM Guard for Go** — локальное обнаружение PII и секретов, обратимая маскировка и восстановление текста в LLM-пайплайнах.
 
-**Статус:** ранний MVP; доступны built-in EMAIL detector, deterministic resolver, reversible masking/restore и detection-only API для custom detectors.
+**Статус:** ранний MVP; доступны built-in detectors для EMAIL и structured pack (PHONE, IP_ADDRESS, URL, INN, SNILS, BANK_CARD), deterministic resolver, reversible masking/restore и detection-only API для custom detectors.
 
 ## Зачем
 
@@ -46,7 +46,15 @@ go 1.26
 ## Использование
 
 ```go
-guard, err := llmguard.New(llmguard.WithDetector(llmguard.NewEmailDetector()))
+guard, err := llmguard.New(
+    llmguard.WithDetector(llmguard.NewPhoneDetector()),
+    llmguard.WithDetector(llmguard.NewIPDetector()),
+    llmguard.WithDetector(llmguard.NewURLDetector()),
+    llmguard.WithDetector(llmguard.NewINNDetector()),
+    llmguard.WithDetector(llmguard.NewSNILSDetector()),
+    llmguard.WithDetector(llmguard.NewBankCardDetector()),
+    llmguard.WithDetector(llmguard.NewEmailDetector()),
+)
 if err != nil {
     return err
 }
