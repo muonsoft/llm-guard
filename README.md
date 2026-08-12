@@ -2,7 +2,7 @@
 
 Lightweight open-source **LLM Guard for Go** — локальное обнаружение PII и секретов, обратимая маскировка и восстановление текста в LLM-пайплайнах.
 
-**Статус:** ранний MVP; доступны built-in detectors для EMAIL, conservative RU PERSON, structured pack (PHONE, IP_ADDRESS, URL, INN, SNILS, BANK_CARD, PASSPORT, BANK_ACCOUNT, contextual DATE_OF_BIRTH), `CustomRegexpDetector` для string entity, deterministic resolver, reversible masking/restore и detection-only API для custom Go detectors.
+**Статус:** ранний MVP; доступны built-in detectors для EMAIL, conservative RU PERSON, compositional RU ADDRESS, structured pack (PHONE, IP_ADDRESS, URL, INN, SNILS, BANK_CARD, PASSPORT, BANK_ACCOUNT, contextual DATE_OF_BIRTH), `CustomRegexpDetector` для string entity, deterministic resolver, reversible masking/restore и detection-only API для custom Go detectors.
 
 ## Зачем
 
@@ -85,6 +85,25 @@ restored, err := guard.Restore(ctx, llmResponse, result.Tokens)
 | `фамилия И. О.`, `И. О. фамилия` | Initials and dots входят в единый span |
 
 Одиночные имена/фамилии, street-like contexts, lowercase pairs и произвольные пары capitalized слов **не** принимаются. Tokenization выполняет pinned `github.com/muonsoft/go-razdel`; quality boundary — `testdata/person/cases.jsonl` и `docs/person-quality-report.md`.
+
+### Russian ADDRESS (M5)
+
+Консервативный compositional detector для согласованных русских адресов:
+
+| Supported composition | Notes |
+|-----------------------|-------|
+| `street + house` (minimum) | Explicit street labels (`ул.`, `улица`, `проспект`, `пр-т`, `переулок`, `пер.`, `шоссе`) and bounded house identifiers |
+| `settlement + street + house` | Settlement (`г.`, `город`, or comma-separated capitalized name) extends an already accepted street+house span only |
+| Extended building parts | `корпус`/`корп.`, `строение`/`стр.`, `квартира`/`кв.` after house in one maximal span |
+
+Одиночные города/регионы/улицы, `settlement + street` без дома, postal index, geocoding и normalization **не** поддерживаются. Resolver policy сохраняет полный ADDRESS над вложенным PERSON (например, `ул. Академика Сахарова, 10`). Quality boundary — `testdata/address/cases.jsonl` и `docs/address-quality-report.md`.
+
+```go
+guard, err := llmguard.New(
+	llmguard.WithDetector(llmguard.NewAddressDetector()),
+	llmguard.WithDetector(llmguard.NewPersonDetector()),
+)
+```
 
 ### Structured forms (M3)
 

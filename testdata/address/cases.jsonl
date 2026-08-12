@@ -1,0 +1,33 @@
+{"category":"positive","expectation":"match","id":"address-abbreviated-city-street-house-013","input":"г. Москва, ул. Тверская, д. 18","r0_reference_id":"address-abbreviated-city-street-house-013","schema_version":1,"spans":[{"end":48,"start":0}]}
+{"category":"positive","expectation":"match","id":"address-city-street-house-014","input":"Москва, Тверская улица, 18","r0_reference_id":"address-city-street-house-014","schema_version":1,"spans":[{"end":45,"start":0}]}
+{"category":"positive","expectation":"match","id":"address-street-house-apartment-015","input":"ул. Ленина, дом 15, кв. 27","r0_reference_id":"address-street-house-apartment-015","schema_version":1,"spans":[{"end":39,"start":0}]}
+{"category":"positive","expectation":"match","id":"address-prospect-house-016","input":"проспект Мира, 101","r0_reference_id":"address-prospect-house-016","schema_version":1,"spans":[{"end":30,"start":0}]}
+{"category":"positive","expectation":"match","id":"address-compact-punctuation-017","input":"ул.Тверская,д.1","r0_reference_id":"address-compact-punctuation-017","schema_version":1,"spans":[{"end":26,"start":0}]}
+{"category":"negative","expectation":"no_match","id":"address-negative-settlement-018","input":"Москва","r0_reference_id":"address-negative-settlement-018","schema_version":1,"spans":[]}
+{"category":"negative","expectation":"no_match","id":"address-negative-region-019","input":"Ленинградская область","r0_reference_id":"address-negative-region-019","schema_version":1,"spans":[]}
+{"category":"negative","expectation":"no_match","id":"address-negative-street-020","input":"улица Ленина","r0_reference_id":"address-negative-street-020","schema_version":1,"spans":[]}
+{"category":"ambiguous","expectation":"no_match","id":"address-ambiguous-city-street-021","input":"Москва, Тверская улица","r0_reference_id":"address-ambiguous-city-street-021","schema_version":1,"spans":[]}
+{"category":"positive","expectation":"match","id":"address-lenina-unlabeled-022","input":"ул. Ленина, 10","schema_version":1,"spans":[{"end":22,"start":0}]}
+{"category":"positive","expectation":"match","id":"address-extended-building-023","input":"ул. Ленина, д. 15, корп. 2, стр. 1, кв. 27","schema_version":1,"spans":[{"end":60,"start":0}]}
+{"category":"positive","expectation":"match","id":"address-sakharov-overlap-024","input":"ул. Академика Сахарова, 10","schema_version":1,"spans":[{"end":45,"start":0}]}
+{"category":"positive","expectation":"match","id":"address-prospect-labeled-house-025","input":"проспект Мира, д. 101","schema_version":1,"spans":[{"end":34,"start":0}]}
+{"category":"positive","expectation":"match","id":"address-city-dom-house-026","input":"Москва, Тверская улица, дом 18","schema_version":1,"spans":[{"end":52,"start":0}]}
+{"category":"positive","expectation":"match","id":"address-multiple-027","input":"ул. Ленина, 10 и ул. Мира, 20","schema_version":1,"spans":[{"end":22,"start":0},{"end":44,"start":26}]}
+{"category":"positive","expectation":"match","id":"address-unicode-punct-028","input":"«ул. Ленина, 10» указан","schema_version":1,"spans":[{"end":24,"start":2}]}
+{"category":"positive","expectation":"match","id":"address-sentence-boundary-029","input":"Доставка: ул. Ленина, 10.","schema_version":1,"spans":[{"end":40,"start":18}]}
+{"category":"negative","expectation":"no_match","id":"address-negative-sbp-030","input":"Санкт-Петербург","schema_version":1,"spans":[]}
+{"category":"negative","expectation":"no_match","id":"address-negative-settlement-name-031","input":"Тверская","schema_version":1,"spans":[]}
+{"category":"negative","expectation":"no_match","id":"address-negative-embedded-032","input":"xxxул. Ленина, 10","schema_version":1,"spans":[]}
+{"category":"negative","expectation":"no_match","id":"address-negative-number-033","input":"42","schema_version":1,"spans":[]}
+{"category":"negative","expectation":"no_match","id":"address-negative-settlement-street-034","input":"Москва, Тверская улица","schema_version":1,"spans":[]}
+{"category":"positive","expectation":"match","id":"address-house-slash-035","input":"ул. Ленина, д. 10/2","schema_version":1,"spans":[{"end":28,"start":0}]}
+{"category":"positive","expectation":"match","id":"address-house-hyphen-036","input":"ул. Ленина, д. 10-2","schema_version":1,"spans":[{"end":28,"start":0}]}
+{"category":"positive","expectation":"match","id":"address-house-letter-suffix-037","input":"ул. Ленина, д. 10А","schema_version":1,"spans":[{"end":28,"start":0}]}
+{"category":"positive","expectation":"match","id":"address-street-suffix-abbrev-ul-038","input":"Тверская ул., 18","schema_version":1,"spans":[{"end":26,"start":0}]}
+{"category":"positive","expectation":"match","id":"address-street-suffix-abbrev-prt-039","input":"Мира пр-т, 18","schema_version":1,"spans":[{"end":20,"start":0}]}
+{"category":"positive","expectation":"match","id":"address-street-suffix-abbrev-per-040","input":"Садовый пер., 18","schema_version":1,"spans":[{"end":26,"start":0}]}
+{"category":"negative","expectation":"no_match","id":"address-negative-multiple-commas-041","input":"ул. Ленина,,,,10","schema_version":1,"spans":[]}
+{"category":"negative","expectation":"no_match","id":"address-negative-malformed-extended-042","input":"ул. Ленина, д. 15,,,,корп. 2","schema_version":1,"spans":[]}
+{"category":"negative","expectation":"no_match","id":"address-negative-double-letter-suffix-043","input":"ул. Ленина, д. 10АБ","schema_version":1,"spans":[]}
+{"category":"negative","expectation":"no_match","id":"address-negative-multi-slash-segment-044","input":"ул. Ленина, д. 10/2/3","schema_version":1,"spans":[]}
+{"category":"negative","expectation":"no_match","id":"address-negative-multi-hyphen-segment-045","input":"ул. Ленина, д. 10-2-3","schema_version":1,"spans":[]}

@@ -31,7 +31,7 @@ type Token struct {
 	Hyphenated  bool
 }
 
-// Span is a matched PERSON byte interval in source text.
+// Span is a matched entity byte interval in source text.
 type Span struct {
 	Start int
 	End   int

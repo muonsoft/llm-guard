@@ -88,6 +88,27 @@ func ExampleGuard_personMaskRestore() {
 	// Output: true
 }
 
+func ExampleGuard_addressMaskRestore() {
+	guard, err := llmguard.New(llmguard.WithDetector(llmguard.NewAddressDetector()))
+	if err != nil {
+		panic(err)
+	}
+
+	prompt := "Доставка: ул. Ленина, 10."
+	result, err := guard.Mask(context.Background(), prompt)
+	if err != nil {
+		panic(err)
+	}
+
+	restored, err := guard.Restore(context.Background(), result.Text, result.Tokens)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(restored == prompt)
+	// Output: true
+}
+
 func ExampleGuard_maskRestore() {
 	guard, err := llmguard.New(llmguard.WithDetector(llmguard.NewEmailDetector()))
 	if err != nil {
