@@ -1,0 +1,48 @@
+version: 3
+hub:
+    repo: https://github.com/muonsoft/skills.git
+    ref: main
+    commit: d446e441a0fa670f9decf9d1d2823c7ad9bbb60f
+preset: library
+target_path: .agents/skills
+selected_paths:
+    - agent-memory-usage
+    - agentmem-onboarding
+    - api-conventions
+    - backend-structure
+    - closeout
+    - database-migrations
+    - golang-errors
+    - golang-logging
+    - golang-tests
+    - golang-validation
+    - mcp-tool-input-schema
+    - runnable-background-processes
+    - task-delegation
+skills:
+    agent-memory-usage:
+        upstream_hash: sha256:05e727fa5b0d456b5d44ab28fd9d8424d7fdc82fa5fab0b36346d3aff5210661
+    agentmem-onboarding:
+        upstream_hash: sha256:54d2e1681d8b076b308c7f3651cfda4d3eae1ba2e8e11b0c3fd21957b5864940
+    api-conventions:
+        upstream_hash: sha256:badfdf4e1dd85b220b7c9fdd1646a15e7f582e07953c75a4712df2c1a7774162
+    backend-structure:
+        upstream_hash: sha256:9f477e065f34ff80796a6d92cd096c677b2ebb3f5ce105fe7a16a7392e02be70
+    closeout:
+        upstream_hash: sha256:6457b351aa4e6d3a922bd2d6cf66fa4cec35fa72124bb4963802316aa31ee180
+    database-migrations:
+        upstream_hash: sha256:118ce23f4e0e7ccea54c898798d1678dc05e2b9127ad3b44a863be9a59f8bd57
+    golang-errors:
+        upstream_hash: sha256:edfadb39be2294f33b43200e73498828a8ca763f89370edb0e223e2fea60bb96
+    golang-logging:
+        upstream_hash: sha256:783a784cbb4b0e3463466a21f811f677e5e7bd9df6a022656f25fdc13e243605
+    golang-tests:
+        upstream_hash: sha256:1d9becc1ebbdfe00832119dfa5da30467e6c2597676b061350f1f257a384ea96
+    golang-validation:
+        upstream_hash: sha256:376162500fef4d60e8726cf6cc34c38e61b32c7cc8aacc2105a4ae1d738da17d
+    mcp-tool-input-schema:
+        upstream_hash: sha256:313b1ce465ff6894ac82292d194155846c27b4fadab89e1b71899acdb65ad452
+    runnable-background-processes:
+        upstream_hash: sha256:4dc5a488f4ce172607270d1130651ce75df2704fe9738757ddc5e214e7abf672
+    task-delegation:
+        upstream_hash: sha256:fc4c50e96a3ae50fd6a78b0ce68e18b3d2067aee7c3b7a99e0d2e709d46a2fde
