@@ -1,0 +1,14 @@
+# Dependency module manifest
+#
+# Mechanical gate for ./scripts/release-check.sh license.
+# One module per line as emitted by `go list -m all`.
+# Update this file whenever go.mod/go.sum changes.
+github.com/muonsoft/llm-guard
+github.com/davecgh/go-spew v1.1.1
+github.com/muonsoft/errors v0.5.0
+github.com/muonsoft/go-razdel v0.0.0-20260425122647-5cd53c7a1d02
+github.com/pmezard/go-difflib v1.0.0
+github.com/stretchr/objx v0.5.2
+github.com/stretchr/testify v1.11.1
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405
+gopkg.in/yaml.v3 v3.0.1
