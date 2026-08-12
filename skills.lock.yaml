@@ -2,10 +2,11 @@ version: 3
 hub:
     repo: https://github.com/muonsoft/skills.git
     ref: main
-    commit: 3335dae04f91efedf4efacc46fb1572a1b7a2534
+    commit: c7d4d9362d4058cc6cd8d2582386eb8a0e012177
 preset: library
 include:
     - tag: openspec
+    - tag: herdr
 target_path: .agents/skills
 selected_paths:
     - agent-memory-usage
@@ -18,6 +19,7 @@ selected_paths:
     - golang-logging
     - golang-tests
     - golang-validation
+    - herdr
     - mcp-tool-input-schema
     - openspec-apply-change
     - openspec-archive-change
@@ -53,6 +55,8 @@ skills:
         upstream_hash: sha256:1d9becc1ebbdfe00832119dfa5da30467e6c2597676b061350f1f257a384ea96
     golang-validation:
         upstream_hash: sha256:376162500fef4d60e8726cf6cc34c38e61b32c7cc8aacc2105a4ae1d738da17d
+    herdr:
+        upstream_hash: sha256:d0b99e2642320f9e68546d74bed51364d817600cdbeb253cc8dc055ce350c343
     mcp-tool-input-schema:
         upstream_hash: sha256:313b1ce465ff6894ac82292d194155846c27b4fadab89e1b71899acdb65ad452
     openspec-apply-change:

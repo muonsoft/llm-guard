@@ -1,0 +1,11 @@
+# NOTICE — vendored skill "herdr"
+
+This skill is vendored from an external source. It is not affiliated with,
+endorsed by, or sponsored by the upstream project or its trademark holders.
+
+- Source:   herdrdev/herdr/skills/herdr@v0.8.0
+- Upstream: https://github.com/herdrdev/herdr.git
+- Ref:      v0.8.0
+- License:  Apache-2.0
+
+Do not edit vendored skill content in place; re-vendor from upstream instead.

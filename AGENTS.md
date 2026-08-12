@@ -18,7 +18,50 @@ embeddable library.
 managed-директории для переиспользуемого поведения — через hub PR и `agentmem skills pull`.
 
 Ключевые скиллы: `golang-*`, `backend-structure`, `api-conventions`, `task-delegation`,
-`openspec-*`, `closeout`, `agent-memory-usage`.
+`herdr`, `openspec-*`, `closeout`, `agent-memory-usage`.
+
+`llm-guard-orchestration-experiment` — project-owned overlay в
+`project-skills/llm-guard-orchestration-experiment/SKILL.md`; он не управляется hub
+и не должен попадать в `skills.lock.yaml`. Overlay задаёт экспериментальные правила
+крупных milestone-срезов поверх managed `task-delegation`.
+
+## Эксперимент оркестрации
+
+Перед нетривиальной реализацией полностью прочитать
+`project-skills/llm-guard-orchestration-experiment/SKILL.md` и использовать его как
+project-specific overlay:
+
+- GPT-5.6 Sol планирует, пишет task packet, проводит полный review и принимает работу;
+- Composer 2.5 — единственный агент, который пишет product code;
+- по умолчанию один green semantic milestone передаётся одним primary job;
+- делить milestone можно только по независимым acceptance, verification и shipping boundaries;
+- один пишущий Composer на worktree; read-only проверки можно выполнять параллельно;
+- все замечания полного review отправляются одним correction packet.
+
+Варианты и журнал метрик описаны в `docs/orchestration_experiment.md`. По умолчанию
+использовать вариант B (крупные срезы через `cursor-executor`). Вариант C использует
+долгоживущий Composer через Herdr и не включается при неуспешном preflight.
+
+**Preflight для A/B**
+
+```bash
+node .agents/skills/task-delegation/scripts/cursor-executor.mjs doctor
+```
+
+**Дополнительный preflight для C**
+
+```bash
+test "${HERDR_ENV:-}" = 1
+herdr --version
+herdr agent list
+```
+
+**Проверка milestone**
+
+```bash
+go test ./...
+go vet ./...
+```
 
 ## OpenSpec workflow
 

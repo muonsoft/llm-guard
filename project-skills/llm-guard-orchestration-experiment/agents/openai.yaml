@@ -1,0 +1,4 @@
+interface:
+  display_name: "LLM Guard Orchestration Experiment"
+  short_description: "Run milestone-scale Sol and Composer experiments"
+  default_prompt: "Use $llm-guard-orchestration-experiment to run this coding milestone through Sol, Composer 2.5, and Herdr."
