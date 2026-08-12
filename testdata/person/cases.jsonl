@@ -1,0 +1,25 @@
+{"category":"positive","expectation":"match","id":"person-first-last-001","input":"Иван Петров","r0_reference_id":"person-first-last-001","schema_version":1,"spans":[{"end":21,"start":0}]}
+{"category":"positive","expectation":"match","id":"person-last-first-002","input":"Петров Иван","r0_reference_id":"person-last-first-002","schema_version":1,"spans":[{"end":21,"start":0}]}
+{"category":"positive","expectation":"match","id":"person-first-patronymic-last-003","input":"Иван Сергеевич Петров","r0_reference_id":"person-first-patronymic-last-003","schema_version":1,"spans":[{"end":40,"start":0}]}
+{"category":"positive","expectation":"match","id":"person-last-first-patronymic-004","input":"Петров Иван Сергеевич","r0_reference_id":"person-last-first-patronymic-004","schema_version":1,"spans":[{"end":40,"start":0}]}
+{"category":"positive","expectation":"match","id":"person-last-initials-005","input":"Петров И. С.","r0_reference_id":"person-last-initials-005","schema_version":1,"spans":[{"end":20,"start":0}]}
+{"category":"positive","expectation":"match","id":"person-initials-last-006","input":"И. С. Петров","r0_reference_id":"person-initials-last-006","schema_version":1,"spans":[{"end":20,"start":0}]}
+{"category":"positive","expectation":"match","id":"person-dative-007","input":"Ивану Сергеевичу Петрову","r0_reference_id":"person-dative-007","schema_version":1,"spans":[{"end":46,"start":0}]}
+{"category":"positive","expectation":"match","id":"person-instrumental-008","input":"Иваном Сергеевичем Петровым","r0_reference_id":"person-instrumental-008","schema_version":1,"spans":[{"end":52,"start":0}]}
+{"category":"negative","differential_class":"intentional_difference","expectation":"no_match","id":"person-negative-isolated-first-009","input":"Иван","r0_reference_id":"person-negative-isolated-first-009","schema_version":1,"spans":[]}
+{"category":"negative","differential_class":"intentional_difference","expectation":"no_match","id":"person-negative-isolated-surname-010","input":"Петров","r0_reference_id":"person-negative-isolated-surname-010","schema_version":1,"spans":[]}
+{"category":"negative","differential_class":"intentional_difference","expectation":"no_match","id":"person-negative-role-context-011","input":"директор Иван","r0_reference_id":"person-negative-role-context-011","schema_version":1,"spans":[]}
+{"category":"negative","differential_class":"intentional_difference","expectation":"no_match","id":"person-negative-street-like-012","input":"улица Гагарина","r0_reference_id":"person-negative-street-like-012","schema_version":1,"spans":[]}
+{"category":"positive","expectation":"match","id":"person-multiple-013","input":"Иван Петров встретил Петров Иван","schema_version":1,"spans":[{"end":21,"start":0},{"end":60,"start":39}]}
+{"category":"positive","expectation":"match","id":"person-unicode-punct-014","input":"«Иван Петров» сообщил","schema_version":1,"spans":[{"end":23,"start":2}]}
+{"category":"negative","expectation":"no_match","id":"person-lowercase-015","input":"иван петров","schema_version":1,"spans":[]}
+{"category":"negative","expectation":"no_match","id":"person-embedded-token-016","input":"xxxИван Петров","schema_version":1,"spans":[]}
+{"category":"negative","expectation":"no_match","id":"person-product-name-017","input":"Проект Альфа","schema_version":1,"spans":[]}
+{"category":"negative","expectation":"no_match","id":"person-common-word-018","input":"Большой Театр","schema_version":1,"spans":[]}
+{"category":"negative","expectation":"no_match","id":"person-street-prospect-019","input":"пр-т Гагарина","schema_version":1,"spans":[]}
+{"category":"negative","expectation":"no_match","id":"person-street-abbrev-020","input":"ул. Петрова","schema_version":1,"spans":[]}
+{"category":"positive","expectation":"match","id":"person-feminine-pair-021","input":"Мария Иванова и Анна Смирнова","schema_version":1,"spans":[{"end":25,"start":0},{"end":54,"start":29}]}
+{"category":"negative","expectation":"no_match","id":"person-adjective-ending-022","input":"Иван Новый","schema_version":1,"spans":[]}
+{"category":"negative","expectation":"no_match","id":"person-adjective-ending-023","input":"Сергей Синий","schema_version":1,"spans":[]}
+{"category":"negative","expectation":"no_match","id":"person-adjective-ending-024","input":"Мария Новая","schema_version":1,"spans":[]}
+{"category":"negative","expectation":"no_match","id":"person-spaced-initials-025","input":"Петров И . С .","schema_version":1,"spans":[]}
