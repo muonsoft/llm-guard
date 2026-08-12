@@ -44,6 +44,22 @@ primary job и correction cycle внутри milestone. Вариант B с то
 гранулярностью через `cursor-executor` служит контролем. Варианты нельзя менять
 внутри milestone; C не включается при неуспешном preflight.
 
+### Milestone-сессии MVP
+
+Execution map хранится в `docs/milestones/`: отдельный scope-файл на milestone,
+единый dashboard `docs/milestones/STATUS.md` и обязательный session lifecycle в
+`docs/milestones/RUNBOOK.md`.
+
+- одна оркестраторская сессия выполняет ровно один milestone и один OpenSpec change;
+- цикл: OpenSpec FF → Composer implementation → полный review Sol → consolidated
+  Composer correction → broad checks → OpenSpec verify → sync specs → archive;
+- следующий milestone стартует только после статуса `archived` и reviewed green
+  checkpoint всех его зависимостей;
+- Composer не меняет OpenSpec checkboxes, dashboard и verification ledgers — это
+  делает оркестратор после независимой проверки evidence;
+- при blocker продолжать тот же change по resume protocol из runbook, не создавать
+  change-дубликат и не переключать вариант внутри milestone.
+
 Для C каждый task packet должен указывать ephemeral result-файл в
 `.agent-orchestration/results/`. Состояния `healthy`, `degraded` и `blocked`,
 правила восстановления и критерии acceptance определены в project overlay.

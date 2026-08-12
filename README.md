@@ -27,6 +27,7 @@ App → Guard (mask) → LLM → Guard (restore) → App
 | Путь | Описание |
 |------|----------|
 | [docs/light_llm_guard_go_mvp_plan.md](docs/light_llm_guard_go_mvp_plan.md) | Черновик MVP-плана |
+| [docs/milestones/](docs/milestones/) | Milestone scope, status dashboard и orchestration runbook |
 | [openspec/](openspec/) | Spec-driven workflow (OpenSpec) |
 | [AGENTS.md](AGENTS.md) | Инструкции для coding agents |
 

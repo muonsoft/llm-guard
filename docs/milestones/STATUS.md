@@ -1,0 +1,47 @@
+# Состояние milestone-задач
+
+Этот файл — единственный durable dashboard реализации. Его меняет только
+оркестратор. Данные Composer result file являются evidence, но не обновляют статус
+автоматически.
+
+## Правила обновления
+
+- `Status` меняется только по определениям из [README.md](README.md).
+- `Tasks` имеет вид `done/total`; до OpenSpec FF — `—`.
+- `Primary` и `Corrections` содержат число завершённых Composer jobs.
+- `Review`, `Verify`, `Specs`, `Archive`: `—`, `active`, `blocked` или `done`.
+- В `Evidence` указываются repo-relative change/archive/result/report paths, а не
+  вставляется чувствительный output.
+- После blocker строка сохраняет change name и последнюю достигнутую gate.
+
+## Dashboard
+
+| ID | Задача / shipping boundary | Зависит от | Status | Change | Variant | Tasks | Primary | Corrections | Review | Verify | Specs | Archive | Evidence |
+|---|---|---|---|---|---|---:|---:|---:|---|---|---|---|---|
+| [M0](M0-core-detection-baseline.md) | Detection-only core и repository baseline | — | `planned` | — | C | — | 0 | 0 | — | — | — | — | — |
+| [R0](R0-nlp-decision-gate.md) | NLP decision gate и reference harness | M0 | `planned` | — | C | — | 0 | 0 | — | — | — | — | — |
+| [M1](M1-reversible-email-slice.md) | EMAIL `Detect → Mask → Restore` | M0 | `planned` | — | C | — | 0 | 0 | — | — | — | — | — |
+| [M2](M2-structured-pii-pack.md) | Основной structured PII pack | M1 | `planned` | — | C | — | 0 | 0 | — | — | — | — | — |
+| [M3](M3-structured-completeness.md) | Полный structured scope и custom regexp | M2 | `planned` | — | C | — | 0 | 0 | — | — | — | — | — |
+| [M4](M4-russian-person.md) | Консервативный RU PERSON | M3, R0 | `planned` | — | C | — | 0 | 0 | — | — | — | — | — |
+| [M5](M5-russian-address.md) | Композиционный RU ADDRESS | M4 | `planned` | — | C | — | 0 | 0 | — | — | — | — | — |
+| [M6](M6-secrets-and-policy.md) | Basic secrets и minimal action policy | M3 | `planned` | — | C | — | 0 | 0 | — | — | — | — | — |
+| [M7](M7-safe-observability-rc.md) | Safe observability и MVP release candidate | M5, M6 | `planned` | — | C | — | 0 | 0 | — | — | — | — | — |
+| [M8](M8-oss-stabilization.md) | OSS-ready `v0.1.0` | M7 | `planned` | — | C | — | 0 | 0 | — | — | — | — | — |
+
+## Текущая сессия
+
+| Поле | Значение |
+|---|---|
+| Milestone | — |
+| Orchestrator session | — |
+| Active change | — |
+| Baseline Git status | — |
+| Herdr agent / pane / Cursor session | — |
+| Primary result | — |
+| Correction result | — |
+| Current gate | — |
+| Blocker / resume condition | — |
+
+После `archived` секция очищается перед завершением сессии; evidence остаётся в
+строке milestone и `docs/orchestration_experiment.md`.
