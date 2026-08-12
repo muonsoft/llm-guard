@@ -67,6 +67,27 @@ func ExampleGuard_customRegexpEntity() {
 	// Output: true
 }
 
+func ExampleGuard_personMaskRestore() {
+	guard, err := llmguard.New(llmguard.WithDetector(llmguard.NewPersonDetector()))
+	if err != nil {
+		panic(err)
+	}
+
+	prompt := "Документ подписал Иван Петров."
+	result, err := guard.Mask(context.Background(), prompt)
+	if err != nil {
+		panic(err)
+	}
+
+	restored, err := guard.Restore(context.Background(), result.Text, result.Tokens)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(restored == prompt)
+	// Output: true
+}
+
 func ExampleGuard_maskRestore() {
 	guard, err := llmguard.New(llmguard.WithDetector(llmguard.NewEmailDetector()))
 	if err != nil {

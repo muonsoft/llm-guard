@@ -2,7 +2,7 @@
 
 Lightweight open-source **LLM Guard for Go** — локальное обнаружение PII и секретов, обратимая маскировка и восстановление текста в LLM-пайплайнах.
 
-**Статус:** ранний MVP; доступны built-in detectors для EMAIL и structured pack (PHONE, IP_ADDRESS, URL, INN, SNILS, BANK_CARD, PASSPORT, BANK_ACCOUNT, contextual DATE_OF_BIRTH), `CustomRegexpDetector` для string entity, deterministic resolver, reversible masking/restore и detection-only API для custom Go detectors.
+**Статус:** ранний MVP; доступны built-in detectors для EMAIL, conservative RU PERSON, structured pack (PHONE, IP_ADDRESS, URL, INN, SNILS, BANK_CARD, PASSPORT, BANK_ACCOUNT, contextual DATE_OF_BIRTH), `CustomRegexpDetector` для string entity, deterministic resolver, reversible masking/restore и detection-only API для custom Go detectors.
 
 ## Зачем
 
@@ -47,7 +47,8 @@ go 1.26
 
 ```go
 guard, err := llmguard.New(
-    llmguard.WithDetector(llmguard.NewPhoneDetector()),
+	llmguard.WithDetector(llmguard.NewPersonDetector()),
+	llmguard.WithDetector(llmguard.NewPhoneDetector()),
     llmguard.WithDetector(llmguard.NewIPDetector()),
     llmguard.WithDetector(llmguard.NewURLDetector()),
     llmguard.WithDetector(llmguard.NewINNDetector()),
@@ -70,6 +71,20 @@ restored, err := guard.Restore(ctx, llmResponse, result.Tokens)
 ```
 
 `TokenSet` принадлежит caller и не раскрывает чувствительные значения через `String`, `GoString` или JSON.
+
+`Restore` подставляет исходный substring byte-for-byte и **не** согласует словоформу с грамматическим контекстом, изменённым LLM (например, после переноса PERSON token в другой падеж).
+
+### Russian PERSON (M4)
+
+Консервативный rule-based detector для согласованных русских ФИО:
+
+| Supported forms | Notes |
+|-----------------|-------|
+| `имя фамилия`, `фамилия имя` | Требуются capitalized кириллические компоненты из project-authored role tables |
+| `имя отчество фамилия`, `фамилия имя отчество` | Bounded declined forms (nominative/dative/instrumental) |
+| `фамилия И. О.`, `И. О. фамилия` | Initials and dots входят в единый span |
+
+Одиночные имена/фамилии, street-like contexts, lowercase pairs и произвольные пары capitalized слов **не** принимаются. Tokenization выполняет pinned `github.com/muonsoft/go-razdel`; quality boundary — `testdata/person/cases.jsonl` и `docs/person-quality-report.md`.
 
 ### Structured forms (M3)
 
