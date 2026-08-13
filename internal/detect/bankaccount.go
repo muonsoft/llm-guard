@@ -1,4 +1,4 @@
-package llmguard
+package detect
 
 import (
 	"context"
@@ -23,23 +23,12 @@ var bankAccountContextMarkers = []string{
 	"р/с",
 }
 
-type bankAccountDetector struct{}
-
-// NewBankAccountDetector returns an immutable built-in BANK_ACCOUNT detector.
-func NewBankAccountDetector() Detector {
-	return bankAccountDetector{}
-}
-
-func (bankAccountDetector) Name() string {
-	return bankAccountDetectorName
-}
-
-func (bankAccountDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
+func BankAccount(ctx context.Context, text string) ([]Span, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
 
-	var findings []Finding
+	var findings []Span
 	for _, pattern := range []*regexp.Regexp{bankAccountGroupedPattern, bankAccountCompactPattern} {
 		matches := pattern.FindAllStringIndex(text, -1)
 		for _, loc := range matches {
@@ -66,13 +55,7 @@ func (bankAccountDetector) Detect(ctx context.Context, text string) ([]Finding, 
 					continue
 				}
 			}
-			findings = append(findings, Finding{
-				Entity:     EntityBankAccount,
-				Start:      start,
-				End:        end,
-				Confidence: 0.85,
-				Detector:   bankAccountDetectorName,
-			})
+			findings = append(findings, Span{Start: start, End: end})
 		}
 	}
 

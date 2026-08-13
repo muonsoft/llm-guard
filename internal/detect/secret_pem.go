@@ -1,4 +1,4 @@
-package llmguard
+package detect
 
 import (
 	"context"
@@ -16,23 +16,12 @@ var pemPrivateKeyLabels = []string{
 	"PGP PRIVATE KEY BLOCK",
 }
 
-type pemPrivateKeyDetector struct{}
-
-// NewPEMPrivateKeyDetector returns an immutable built-in SECRET_PRIVATE_KEY detector.
-func NewPEMPrivateKeyDetector() Detector {
-	return pemPrivateKeyDetector{}
-}
-
-func (pemPrivateKeyDetector) Name() string {
-	return pemPrivateKeyDetectorName
-}
-
-func (pemPrivateKeyDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
+func PEMPrivateKey(ctx context.Context, text string) ([]Span, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
 
-	var findings []Finding
+	var findings []Span
 	searchFrom := 0
 	for searchFrom < len(text) {
 		if err := ctx.Err(); err != nil {
@@ -81,13 +70,7 @@ func (pemPrivateKeyDetector) Detect(ctx context.Context, text string) ([]Finding
 			continue
 		}
 
-		findings = append(findings, Finding{
-			Entity:     EntitySecretPrivateKey,
-			Start:      start,
-			End:        end,
-			Confidence: 0.95,
-			Detector:   pemPrivateKeyDetectorName,
-		})
+		findings = append(findings, Span{Start: start, End: end})
 		searchFrom = end
 	}
 

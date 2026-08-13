@@ -1,4 +1,4 @@
-package llmguard
+package detect
 
 import (
 	"context"
@@ -19,23 +19,12 @@ var passportContextMarkers = []string{
 	"серия",
 }
 
-type passportDetector struct{}
-
-// NewPassportDetector returns an immutable built-in PASSPORT detector.
-func NewPassportDetector() Detector {
-	return passportDetector{}
-}
-
-func (passportDetector) Name() string {
-	return passportDetectorName
-}
-
-func (passportDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
+func Passport(ctx context.Context, text string) ([]Span, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
 
-	var findings []Finding
+	var findings []Span
 	for _, pattern := range []*regexp.Regexp{passportFourSixPattern, passportTwoTwoSixPattern} {
 		matches := pattern.FindAllStringIndex(text, -1)
 		for _, loc := range matches {
@@ -55,13 +44,7 @@ func (passportDetector) Detect(ctx context.Context, text string) ([]Finding, err
 			if !hasBoundedRUContext(text, start, passportContextMarkers) {
 				continue
 			}
-			findings = append(findings, Finding{
-				Entity:     EntityPassport,
-				Start:      start,
-				End:        end,
-				Confidence: 0.86,
-				Detector:   passportDetectorName,
-			})
+			findings = append(findings, Span{Start: start, End: end})
 		}
 	}
 

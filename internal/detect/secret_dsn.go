@@ -1,4 +1,4 @@
-package llmguard
+package detect
 
 import (
 	"context"
@@ -25,18 +25,7 @@ var dsnAllowedSchemes = map[string]struct{}{
 	"amqps":       {},
 }
 
-type dsnDetector struct{}
-
-// NewDSNDetector returns an immutable built-in CONNECTION_STRING detector.
-func NewDSNDetector() Detector {
-	return dsnDetector{}
-}
-
-func (dsnDetector) Name() string {
-	return dsnDetectorName
-}
-
-func (dsnDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
+func DSN(ctx context.Context, text string) ([]Span, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -46,7 +35,7 @@ func (dsnDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
 		return nil, nil
 	}
 
-	findings := make([]Finding, 0, len(matches))
+	findings := make([]Span, 0, len(matches))
 	for _, loc := range matches {
 		if err := ctx.Err(); err != nil {
 			return nil, err
@@ -64,13 +53,7 @@ func (dsnDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
 			continue
 		}
 
-		findings = append(findings, Finding{
-			Entity:     EntityConnectionString,
-			Start:      start,
-			End:        end,
-			Confidence: 0.93,
-			Detector:   dsnDetectorName,
-		})
+		findings = append(findings, Span{Start: start, End: end})
 	}
 
 	if len(findings) == 0 {

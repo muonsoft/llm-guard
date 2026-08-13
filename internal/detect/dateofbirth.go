@@ -1,4 +1,4 @@
-package llmguard
+package detect
 
 import (
 	"context"
@@ -40,23 +40,12 @@ var russianMonthGenitive = map[string]time.Month{
 	"декабря":  time.December,
 }
 
-type dateOfBirthDetector struct{}
-
-// NewDateOfBirthDetector returns an immutable built-in DATE_OF_BIRTH detector.
-func NewDateOfBirthDetector() Detector {
-	return dateOfBirthDetector{}
-}
-
-func (dateOfBirthDetector) Name() string {
-	return dateOfBirthDetectorName
-}
-
-func (dateOfBirthDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
+func DateOfBirth(ctx context.Context, text string) ([]Span, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
 
-	var findings []Finding
+	var findings []Span
 
 	numericMatches := dateOfBirthNumericPattern.FindAllStringIndex(text, -1)
 	for _, loc := range numericMatches {
@@ -77,13 +66,7 @@ func (dateOfBirthDetector) Detect(ctx context.Context, text string) ([]Finding, 
 		if !hasBoundedRUContext(text, start, dateOfBirthContextMarkers) {
 			continue
 		}
-		findings = append(findings, Finding{
-			Entity:     EntityDateOfBirth,
-			Start:      start,
-			End:        end,
-			Confidence: 0.84,
-			Detector:   dateOfBirthDetectorName,
-		})
+		findings = append(findings, Span{Start: start, End: end})
 	}
 
 	textMatches := dateOfBirthTextPattern.FindAllStringIndex(text, -1)
@@ -108,13 +91,7 @@ func (dateOfBirthDetector) Detect(ctx context.Context, text string) ([]Finding, 
 		if !hasBoundedRUContext(text, start, dateOfBirthContextMarkers) {
 			continue
 		}
-		findings = append(findings, Finding{
-			Entity:     EntityDateOfBirth,
-			Start:      start,
-			End:        end,
-			Confidence: 0.84,
-			Detector:   dateOfBirthDetectorName,
-		})
+		findings = append(findings, Span{Start: start, End: end})
 	}
 
 	if len(findings) == 0 {

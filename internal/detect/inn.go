@@ -1,4 +1,4 @@
-package llmguard
+package detect
 
 import (
 	"context"
@@ -9,18 +9,7 @@ const innDetectorName = "inn"
 
 var innCandidatePattern = regexp.MustCompile(`\d{12}|\d{10}`)
 
-type innDetector struct{}
-
-// NewINNDetector returns an immutable built-in INN detector.
-func NewINNDetector() Detector {
-	return innDetector{}
-}
-
-func (innDetector) Name() string {
-	return innDetectorName
-}
-
-func (innDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
+func INN(ctx context.Context, text string) ([]Span, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -30,7 +19,7 @@ func (innDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
 		return nil, nil
 	}
 
-	findings := make([]Finding, 0, len(matches))
+	findings := make([]Span, 0, len(matches))
 	for _, loc := range matches {
 		if err := ctx.Err(); err != nil {
 			return nil, err
@@ -46,13 +35,7 @@ func (innDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
 			continue
 		}
 
-		findings = append(findings, Finding{
-			Entity:     EntityINN,
-			Start:      start,
-			End:        end,
-			Confidence: 0.92,
-			Detector:   innDetectorName,
-		})
+		findings = append(findings, Span{Start: start, End: end})
 	}
 
 	if len(findings) == 0 {

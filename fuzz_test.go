@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 	"unicode/utf8"
+
+	"github.com/muonsoft/llm-guard/internal/detect"
 )
 
 func FuzzStructuredDetectorsInvariants(f *testing.F) {
@@ -248,10 +250,10 @@ func FuzzEmailDetectorBoundaries(f *testing.F) {
 				t.Fatalf("unexpected entity %q", finding.Entity)
 			}
 			mailbox := text[finding.Start:finding.End]
-			if !validateEmailMailbox(mailbox) {
+			if !detect.ValidateEmailMailbox(mailbox) {
 				t.Fatalf("invalid mailbox grammar for %q", mailbox)
 			}
-			if !emailBoundaryOK(text, finding.Start, finding.End) {
+			if !detect.EmailBoundaryOK(text, finding.Start, finding.End) {
 				t.Fatalf("boundary check failed for %q", mailbox)
 			}
 		}
@@ -580,17 +582,5 @@ func TestFuzzHelpers_SyntheticFindings_ExpectWithinText(t *testing.T) {
 		if finding.End < len("abcdef") && !utf8.RuneStart("abcdef"[finding.End]) {
 			t.Fatalf("end not on rune boundary")
 		}
-	}
-}
-
-func TestFuzzHelpers_EmailMailboxValidation_ExpectAsciiOnly(t *testing.T) {
-	if validateEmailMailbox("a@b.co") != true {
-		t.Fatal("expected valid mailbox")
-	}
-	if validateEmailMailbox(strings.Repeat("a", 50)+"@b.co") != true {
-		t.Fatal("expected long local part valid")
-	}
-	if validateEmailMailbox("user@example.company") != true {
-		t.Fatal("expected company suffix valid")
 	}
 }

@@ -1,4 +1,4 @@
-package llmguard
+package detect
 
 import (
 	"context"
@@ -15,33 +15,19 @@ var (
 	ipv6CandidatePattern = regexp.MustCompile(`(?i)(?:[0-9a-f]{0,4}:){1,6}(?:[0-9a-f]{0,4}|(?:(?:[0-9]{1,3}\.){3}[0-9]{1,3}))`)
 )
 
-type ipDetector struct{}
-
-// NewIPDetector returns an immutable built-in IP_ADDRESS detector.
-func NewIPDetector() Detector {
-	return ipDetector{}
-}
-
-func (ipDetector) Name() string {
-	return ipDetectorName
-}
-
-func (ipDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
+func IP(ctx context.Context, text string) ([]Span, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
 
-	candidates := make([]Finding, 0, 4)
+	candidates := make([]Span, 0, 4)
 
 	bracketed := findBracketedIPv6(text)
 	for _, loc := range bracketed {
 		if err := ctx.Err(); err != nil {
 			return nil, err
 		}
-		candidates = append(candidates, Finding{
-			Entity: EntityIPAddress, Start: loc[0], End: loc[1],
-			Confidence: 0.9, Detector: ipDetectorName,
-		})
+		candidates = append(candidates, Span{Start: loc[0], End: loc[1]})
 	}
 
 	ipv6Matches := ipv6CandidatePattern.FindAllStringIndex(text, -1)
@@ -65,10 +51,7 @@ func (ipDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
 		if !validateIPv6Segment(segment) {
 			continue
 		}
-		candidates = append(candidates, Finding{
-			Entity: EntityIPAddress, Start: start, End: end,
-			Confidence: 0.9, Detector: ipDetectorName,
-		})
+		candidates = append(candidates, Span{Start: start, End: end})
 	}
 
 	ipv4Matches := ipv4CandidatePattern.FindAllStringIndex(text, -1)
@@ -87,10 +70,7 @@ func (ipDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
 		if !validateIPv4Segment(segment) {
 			continue
 		}
-		candidates = append(candidates, Finding{
-			Entity: EntityIPAddress, Start: start, End: end,
-			Confidence: 0.9, Detector: ipDetectorName,
-		})
+		candidates = append(candidates, Span{Start: start, End: end})
 	}
 
 	findings := selectNonOverlappingIPFindings(candidates)
@@ -144,7 +124,7 @@ func ipAddressBoundaryOK(text string, start, end int) bool {
 	return true
 }
 
-func spanInsideAny(start, end int, findings []Finding) bool {
+func spanInsideAny(start, end int, findings []Span) bool {
 	for _, f := range findings {
 		if start >= f.Start && end <= f.End {
 			return true
@@ -153,7 +133,7 @@ func spanInsideAny(start, end int, findings []Finding) bool {
 	return false
 }
 
-func selectNonOverlappingIPFindings(candidates []Finding) []Finding {
+func selectNonOverlappingIPFindings(candidates []Span) []Span {
 	if len(candidates) == 0 {
 		return nil
 	}
@@ -168,7 +148,7 @@ func selectNonOverlappingIPFindings(candidates []Finding) []Finding {
 		return candidates[i].End > candidates[j].End
 	})
 
-	selected := make([]Finding, 0, len(candidates))
+	selected := make([]Span, 0, len(candidates))
 	for _, candidate := range candidates {
 		if spanInsideAny(candidate.Start, candidate.End, selected) {
 			continue
