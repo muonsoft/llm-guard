@@ -1,4 +1,4 @@
-package llmguard
+package detect
 
 import (
 	"context"
@@ -13,18 +13,7 @@ var phoneCandidatePattern = regexp.MustCompile(
 	`\+[0-9][0-9\s\-().]{5,22}[0-9]|(?:\+7|8)[0-9\s\-().]{8,22}[0-9]`,
 )
 
-type phoneDetector struct{}
-
-// NewPhoneDetector returns an immutable built-in PHONE detector.
-func NewPhoneDetector() Detector {
-	return phoneDetector{}
-}
-
-func (phoneDetector) Name() string {
-	return phoneDetectorName
-}
-
-func (phoneDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
+func Phone(ctx context.Context, text string) ([]Span, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -34,7 +23,7 @@ func (phoneDetector) Detect(ctx context.Context, text string) ([]Finding, error)
 		return nil, nil
 	}
 
-	findings := make([]Finding, 0, len(matches))
+	findings := make([]Span, 0, len(matches))
 	for _, loc := range matches {
 		if err := ctx.Err(); err != nil {
 			return nil, err
@@ -50,13 +39,7 @@ func (phoneDetector) Detect(ctx context.Context, text string) ([]Finding, error)
 			continue
 		}
 
-		findings = append(findings, Finding{
-			Entity:     EntityPhone,
-			Start:      start,
-			End:        end,
-			Confidence: 0.85,
-			Detector:   phoneDetectorName,
-		})
+		findings = append(findings, Span{Start: start, End: end})
 	}
 
 	if len(findings) == 0 {

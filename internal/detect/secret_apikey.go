@@ -1,4 +1,4 @@
-package llmguard
+package detect
 
 import (
 	"context"
@@ -32,23 +32,12 @@ var apiKeyShapes = []apiKeyShape{
 	{pattern: openAISkPattern, innerExtra: apiKeyInnerBoundary},
 }
 
-type apiKeyDetector struct{}
-
-// NewAPIKeyDetector returns an immutable built-in SECRET_API_KEY detector.
-func NewAPIKeyDetector() Detector {
-	return apiKeyDetector{}
-}
-
-func (apiKeyDetector) Name() string {
-	return apiKeyDetectorName
-}
-
-func (apiKeyDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
+func APIKey(ctx context.Context, text string) ([]Span, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
 
-	var findings []Finding
+	var findings []Span
 	seen := make(map[spanKey]struct{})
 
 	for _, shape := range apiKeyShapes {
@@ -66,13 +55,7 @@ func (apiKeyDetector) Detect(ctx context.Context, text string) ([]Finding, error
 				continue
 			}
 			seen[key] = struct{}{}
-			findings = append(findings, Finding{
-				Entity:     EntitySecretAPIKey,
-				Start:      start,
-				End:        end,
-				Confidence: 0.9,
-				Detector:   apiKeyDetectorName,
-			})
+			findings = append(findings, Span{Start: start, End: end})
 		}
 	}
 
@@ -85,13 +68,7 @@ func (apiKeyDetector) Detect(ctx context.Context, text string) ([]Finding, error
 		if a.Start != b.Start {
 			return a.Start < b.Start
 		}
-		if a.End != b.End {
-			return a.End < b.End
-		}
-		if a.Entity != b.Entity {
-			return a.Entity < b.Entity
-		}
-		return a.Detector < b.Detector
+		return a.End < b.End
 	})
 
 	return findings, nil

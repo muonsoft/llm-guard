@@ -1,4 +1,4 @@
-package llmguard
+package detect
 
 import (
 	"context"
@@ -12,18 +12,7 @@ const urlDetectorName = "url"
 
 var urlCandidatePattern = regexp.MustCompile(`https?://(?:[^\s<>"{}|\\^` + "`" + `\[\]]|\[[^\]]*\])+`)
 
-type urlDetector struct{}
-
-// NewURLDetector returns an immutable built-in URL detector.
-func NewURLDetector() Detector {
-	return urlDetector{}
-}
-
-func (urlDetector) Name() string {
-	return urlDetectorName
-}
-
-func (urlDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
+func URL(ctx context.Context, text string) ([]Span, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -33,7 +22,7 @@ func (urlDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
 		return nil, nil
 	}
 
-	findings := make([]Finding, 0, len(matches))
+	findings := make([]Span, 0, len(matches))
 	for _, loc := range matches {
 		if err := ctx.Err(); err != nil {
 			return nil, err
@@ -54,13 +43,7 @@ func (urlDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
 			continue
 		}
 
-		findings = append(findings, Finding{
-			Entity:     EntityURL,
-			Start:      start,
-			End:        trimmedEnd,
-			Confidence: 0.88,
-			Detector:   urlDetectorName,
-		})
+		findings = append(findings, Span{Start: start, End: trimmedEnd})
 	}
 
 	if len(findings) == 0 {

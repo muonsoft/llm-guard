@@ -1,4 +1,4 @@
-package llmguard
+package detect
 
 import (
 	"strings"

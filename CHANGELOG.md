@@ -9,6 +9,11 @@ with pre-1.0 exceptions documented in
 
 ## [Unreleased]
 
+### Changed
+
+- Built-in structured PII and secret scanners now live in `internal/detect`.
+  Public constructors, `Detector`, and `Finding` contracts are unchanged.
+
 ### Added
 
 - OSS distribution boundary: external consumer fixture, `scripts/release-check.sh`

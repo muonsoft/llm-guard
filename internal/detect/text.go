@@ -1,8 +1,9 @@
-package llmguard
+package detect
 
 import (
 	"strings"
 	"unicode"
+	"unicode/utf8"
 )
 
 func digitTokenBoundaryOK(text string, start, end int) bool {
@@ -126,4 +127,19 @@ func consistentDigitSeparators(segment string) bool {
 		}
 	}
 	return true
+}
+
+func precedingRune(text string, index int) (rune, int) {
+	if index <= 0 {
+		return 0, 0
+	}
+	r, size := utf8.DecodeLastRuneInString(text[:index])
+	return r, size
+}
+
+func utf8RuneAt(text string, index int) (rune, int) {
+	if index < 0 || index >= len(text) {
+		return 0, 0
+	}
+	return utf8.DecodeRuneInString(text[index:])
 }

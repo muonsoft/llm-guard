@@ -1,4 +1,4 @@
-package llmguard
+package detect
 
 import (
 	"context"
@@ -12,18 +12,7 @@ const jwtDetectorName = "secret_jwt"
 
 var jwtCandidatePattern = regexp.MustCompile(`[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+`)
 
-type jwtDetector struct{}
-
-// NewJWTDetector returns an immutable built-in SECRET_JWT detector.
-func NewJWTDetector() Detector {
-	return jwtDetector{}
-}
-
-func (jwtDetector) Name() string {
-	return jwtDetectorName
-}
-
-func (jwtDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
+func JWT(ctx context.Context, text string) ([]Span, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -33,7 +22,7 @@ func (jwtDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
 		return nil, nil
 	}
 
-	findings := make([]Finding, 0, len(matches))
+	findings := make([]Span, 0, len(matches))
 	for _, loc := range matches {
 		if err := ctx.Err(); err != nil {
 			return nil, err
@@ -47,13 +36,7 @@ func (jwtDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
 			continue
 		}
 
-		findings = append(findings, Finding{
-			Entity:     EntitySecretJWT,
-			Start:      start,
-			End:        end,
-			Confidence: 0.92,
-			Detector:   jwtDetectorName,
-		})
+		findings = append(findings, Span{Start: start, End: end})
 	}
 
 	if len(findings) == 0 {

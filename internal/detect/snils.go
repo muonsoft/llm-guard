@@ -1,4 +1,4 @@
-package llmguard
+package detect
 
 import (
 	"context"
@@ -13,23 +13,12 @@ var (
 	snilsFormattedPattern = regexp.MustCompile(`\d{3}-\d{3}-\d{3} \d{2}`)
 )
 
-type snilsDetector struct{}
-
-// NewSNILSDetector returns an immutable built-in SNILS detector.
-func NewSNILSDetector() Detector {
-	return snilsDetector{}
-}
-
-func (snilsDetector) Name() string {
-	return snilsDetectorName
-}
-
-func (snilsDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
+func SNILS(ctx context.Context, text string) ([]Span, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
 
-	var findings []Finding
+	var findings []Span
 
 	formatted := snilsFormattedPattern.FindAllStringIndex(text, -1)
 	for _, loc := range formatted {
@@ -44,13 +33,7 @@ func (snilsDetector) Detect(ctx context.Context, text string) ([]Finding, error)
 		if !validateSNILSSegment(segment) {
 			continue
 		}
-		findings = append(findings, Finding{
-			Entity:     EntitySNILS,
-			Start:      start,
-			End:        end,
-			Confidence: 0.91,
-			Detector:   snilsDetectorName,
-		})
+		findings = append(findings, Span{Start: start, End: end})
 	}
 
 	compact := snilsCompactPattern.FindAllStringIndex(text, -1)
@@ -69,28 +52,13 @@ func (snilsDetector) Detect(ctx context.Context, text string) ([]Finding, error)
 		if !validateSNILSSegment(segment) {
 			continue
 		}
-		findings = append(findings, Finding{
-			Entity:     EntitySNILS,
-			Start:      start,
-			End:        end,
-			Confidence: 0.91,
-			Detector:   snilsDetectorName,
-		})
+		findings = append(findings, Span{Start: start, End: end})
 	}
 
 	if len(findings) == 0 {
 		return nil, nil
 	}
 	return findings, nil
-}
-
-func overlapsExisting(findings []Finding, start, end int) bool {
-	for _, f := range findings {
-		if intervalsOverlap(start, end, f.Start, f.End) {
-			return true
-		}
-	}
-	return false
 }
 
 func validateSNILSSegment(segment string) bool {

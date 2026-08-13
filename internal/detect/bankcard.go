@@ -1,4 +1,4 @@
-package llmguard
+package detect
 
 import (
 	"context"
@@ -11,18 +11,7 @@ var bankCardCandidatePattern = regexp.MustCompile(
 	`(?:\d[ -]?){12,18}\d`,
 )
 
-type bankCardDetector struct{}
-
-// NewBankCardDetector returns an immutable built-in BANK_CARD detector.
-func NewBankCardDetector() Detector {
-	return bankCardDetector{}
-}
-
-func (bankCardDetector) Name() string {
-	return bankCardDetectorName
-}
-
-func (bankCardDetector) Detect(ctx context.Context, text string) ([]Finding, error) {
+func BankCard(ctx context.Context, text string) ([]Span, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -32,7 +21,7 @@ func (bankCardDetector) Detect(ctx context.Context, text string) ([]Finding, err
 		return nil, nil
 	}
 
-	findings := make([]Finding, 0, len(matches))
+	findings := make([]Span, 0, len(matches))
 	for _, loc := range matches {
 		if err := ctx.Err(); err != nil {
 			return nil, err
@@ -48,13 +37,7 @@ func (bankCardDetector) Detect(ctx context.Context, text string) ([]Finding, err
 			continue
 		}
 
-		findings = append(findings, Finding{
-			Entity:     EntityBankCard,
-			Start:      start,
-			End:        end,
-			Confidence: 0.87,
-			Detector:   bankCardDetectorName,
-		})
+		findings = append(findings, Span{Start: start, End: end})
 	}
 
 	if len(findings) == 0 {
