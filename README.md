@@ -2,7 +2,7 @@
 
 Lightweight open-source **LLM Guard for Go** — локальное обнаружение PII и секретов, обратимая маскировка и восстановление текста в LLM-пайплайнах.
 
-**Статус:** MVP **release candidate** — полный built-in detector pack, immutable allow/mask/block policy, deterministic resolver, reversible masking/restore, framework-neutral safe observability (Noop by default), offline evaluation runner, benchmarks и embedded Detect → Mask → Restore flow. Это не объявленный production release.
+**Статус:** MVP **готов к `v0.1.0`** — полный built-in detector pack, immutable allow/mask/block policy, deterministic resolver, reversible masking/restore, framework-neutral safe observability (Noop by default), offline evaluation runner, benchmarks, OSS policies и reproducible release dry-run. Тег `v0.1.0` и GitHub release **ещё не опубликованы**; см. [docs/release-checklist.md](docs/release-checklist.md).
 
 ## Зачем
 
@@ -31,7 +31,17 @@ App → Guard (mask) → LLM → Guard (restore) → App
 | [openspec/](openspec/) | Spec-driven workflow (OpenSpec) |
 | [docs/evaluation-baseline.md](docs/evaluation-baseline.md) | Full-MVP evaluation corpus and reproduction command |
 | [docs/benchmark-baseline.md](docs/benchmark-baseline.md) | Representative Detect/Mask/Restore benchmarks (no SLO) |
+| [docs/m8-quality-benchmark-comparison.md](docs/m8-quality-benchmark-comparison.md) | M8 regression comparison vs M7 baselines |
+| [docs/compatibility-versioning.md](docs/compatibility-versioning.md) | Pre-1.0 SemVer, Go 1.26.2+ support |
+| [docs/known-limitations.md](docs/known-limitations.md) | Published MVP limitations |
+| [docs/mvp-readiness-matrix.md](docs/mvp-readiness-matrix.md) | Definition of Done evidence map |
+| [docs/release-checklist.md](docs/release-checklist.md) | Manual `v0.1.0` tag/release steps |
+| [docs/dependency-license-inventory.md](docs/dependency-license-inventory.md) | Full dependency/data license inventory |
 | [docs/secret-patterns.md](docs/secret-patterns.md) | Versioned secret pattern snapshot and update procedure |
+| [SECURITY.md](SECURITY.md) | Vulnerability reporting (private, synthetic fixtures only) |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution, OpenSpec, and provenance requirements |
+| [CHANGELOG.md](CHANGELOG.md) | Unreleased / planned `v0.1.0` notes |
+| [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES) | Shipped dependency notices |
 | [AGENTS.md](AGENTS.md) | Инструкции для coding agents |
 
 ## Модуль
@@ -43,8 +53,16 @@ go get github.com/muonsoft/llm-guard
 ```go
 module github.com/muonsoft/llm-guard
 
-go 1.26
+go 1.26.2
 ```
+
+External consumer verification (synthetic fixture, local `replace`):
+
+```bash
+./scripts/release-check.sh consumer
+```
+
+Source: [testdata/external-consumer/main.go](testdata/external-consumer/main.go)
 
 ## Использование
 
@@ -200,7 +218,11 @@ See [docs/evaluation-baseline.md](docs/evaluation-baseline.md) and [docs/benchma
 
 ### Known limitations
 
+Full list: [docs/known-limitations.md](docs/known-limitations.md). Highlights:
+
 - Conservative RU-first detectors; English and edge cases may be missed or partially supported.
+- Restore does not perform morphological agreement; LLM may mutate placeholders.
+- No zero-FN guarantee, prompt-injection protection, moderation, or persistent token storage.
 - Unified evaluation corpus is representative; deep regression lives in family corpora under `testdata/`.
 - Benchmark numbers vary by hardware and are not production SLOs.
 - No exporter server, persistent audit store, or distributed tracing in core.
@@ -211,9 +233,15 @@ See [docs/evaluation-baseline.md](docs/evaluation-baseline.md) and [docs/benchma
 
 ```bash
 go test ./...
+go vet ./...
+./scripts/release-check.sh          # full side-effect-free release dry-run
+./scripts/release-check.sh consumer # external module compile/run only
 agentmem skills verify
 openspec doctor
 ```
+
+Supported Go: **1.26.2** (minimum) with CI forward check on `stable` — see
+[docs/compatibility-versioning.md](docs/compatibility-versioning.md).
 
 ## Лицензия
 

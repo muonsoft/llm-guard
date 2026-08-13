@@ -1,0 +1,133 @@
+Third-Party Notices for github.com/muonsoft/llm-guard
+=====================================================
+
+The project `github.com/muonsoft/llm-guard` is licensed under the MIT License
+(see LICENSE).
+
+This file reproduces the applicable copyright and MIT permission/warranty
+notices for production Go dependencies and for the pinned upstream Razdel code
+ported by `github.com/muonsoft/go-razdel`. Component names, versions, and
+revisions are listed for attribution; upstream Razdel carries only the year in
+its pinned license text.
+
+Distribution roles and non-runtime repository contents are documented in
+[docs/dependency-license-inventory.md](docs/dependency-license-inventory.md).
+Go source module zips include project `testdata/`, `tools/`, and docs unless
+excluded by module zip rules; external Python packages/wheels and their
+dictionaries are not embedded. Direct Go dependencies resolve as separate
+modules.
+
+This file records evidence for distributor review; it does not automatically
+adjudicate license compatibility.
+
+---
+
+## github.com/muonsoft/errors v0.5.0
+
+Role: direct runtime dependency (structured error helpers).
+
+```
+MIT License
+
+Copyright (c) 2022 MuonSoft
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+---
+
+## github.com/muonsoft/go-razdel v0.0.0-20260425122647-5cd53c7a1d02
+
+Role: direct runtime dependency (pure Go Russian tokenization).
+
+Commit: `5cd53c7a1d02780285406c6c9f1635a89953c27a`.
+
+```
+MIT License
+
+Copyright (c) 2026 MuonSoft
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+---
+
+## Upstream Razdel (ported by go-razdel)
+
+Role: MIT-licensed upstream tokenizer code referenced and ported by
+`github.com/muonsoft/go-razdel`.
+
+Pinned upstream revision: `668dbe191a5cfd94bebf9155e2ffa5f94ff3fe33`
+(`natasha/razdel`).
+
+```
+MIT License
+
+Copyright (c) 2017
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+---
+
+## Project-authored runtime data
+
+Bounded matcher tables, alias rules, and suffix rules in `internal/nlp/` are
+project-authored under the repository MIT License. They are compiled into the
+library and are not populated by copying Natasha or OpenCorpora dictionaries.
+
+## Test-only Go modules and external reference tooling
+
+Indirect test modules (for example `github.com/stretchr/testify`) and external
+Python reference packages (Natasha, Yargy, Pymorphy2, OpenCorpora wheels) are
+documented in [docs/dependency-license-inventory.md](docs/dependency-license-inventory.md).
+They are not production runtime dependencies; their dictionaries and wheels are
+not embedded in the Go module.
