@@ -28,19 +28,20 @@
 | [M6](M6-secrets-and-policy.md) | Basic secrets и minimal action policy | M3 | `archived` | `m6-secrets-and-policy` | C | 33/33 | 1 | 2 | `done` | `done` | `done` | `done` | `openspec/changes/archive/2026-08-12-m6-secrets-and-policy/`, `openspec/specs/secret-detection/spec.md`, `openspec/specs/minimal-policy/spec.md`, `docs/secret-patterns.md` |
 | [M7](M7-safe-observability-rc.md) | Safe observability и MVP release candidate | M5, M6 | `archived` | `m7-safe-observability-rc` | C | 35/35 | 1 | 2 | `done` | `done` | `done` | `done` | `openspec/changes/archive/2026-08-12-m7-safe-observability-rc/`, `openspec/specs/safe-observability/spec.md`, `docs/evaluation-baseline.md`, `docs/benchmark-baseline.md`, `docs/safe-surface-audit.md` |
 | [M8](M8-oss-stabilization.md) | OSS-ready `v0.1.0` | M7 | `archived` | `m8-oss-stabilization` | C | 36/36 | 1 | 2 | `done` | `done` | `done` | `done` | `openspec/changes/archive/2026-08-12-m8-oss-stabilization/`, `openspec/specs/oss-distribution/spec.md`, `docs/mvp-readiness-matrix.md`, `docs/dependency-license-inventory.md`, `docs/m8-quality-benchmark-comparison.md` |
+| [PEB](PEB-prefilter-evaluation-benchmark.md) | Precision-oriented prefilter evaluation benchmark | M8 | `active` | `prefilter-evaluation-benchmark` | Cursor-native | 0/52 | 0 | 0 | `—` | `—` | `—` | `—` | `openspec/changes/prefilter-evaluation-benchmark/` |
 
 ## Текущая сессия
 
 | Поле | Значение |
 |---|---|
-| Milestone | — |
-| Orchestrator session | — |
-| Active change | — |
-| Baseline Git status | — |
-| Herdr agent / pane / Cursor session | — |
-| Primary result | — |
+| Milestone | PEB |
+| Orchestrator session | `/opsx-apply prefilter-evaluation-benchmark` (Grok 4.6 high) |
+| Active change | `prefilter-evaluation-benchmark` |
+| Baseline Git status | clean `main` `8e9ee02` |
+| Herdr agent / pane / Cursor session | C preflight failed (`HERDR_ENV` unset); Cursor-native `composer-worker` + Grok 4.6 high review |
+| Primary result | `.agent-orchestration/results/peb-core-evaluation.md` |
 | Correction results | — |
-| Current gate | — |
+| Current gate | primary Composer job (core evaluation) |
 | Blocker / resume condition | — |
 
 После `archived` секция очищается перед завершением сессии; evidence остаётся в
