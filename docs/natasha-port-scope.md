@@ -20,7 +20,7 @@ verified by executing both extractors in Python 3.6.15:
 | Pymorphy2 | tag `0.8`, commit `35bdb0e879419913606c1fb8d718ded265dac24b`; wheel SHA-256 `549a1141abe01093242b9e11a1f60110ee4818f7fe57c9bb363e504339f382f5` | reference-only morphological analysis |
 | Pymorphy2 dictionaries | `2.4.393442.3710985`; wheel SHA-256 `70d3e33fa28108a2dfcded787c7a5946c6ab88bb669b3afb20f8c447aadec924` | reference-only OpenCorpora-derived data |
 | Python | container image `python:3.6.15`; observed image digest `sha256:f8652afaf88c25f0d22354d547d892591067aa4026a7fa9a6819df9f300af6fc` | legacy executable environment with compiler for Yargy's pinned Jellyfish dependency |
-| go-razdel audit | commit `5cd53c7a1d02780285406c6c9f1635a89953c27a`; upstream Razdel submodule `668dbe191a5cfd94bebf9155e2ffa5f94ff3fe33` | normative product token contract to add in M4 |
+| go-razdel audit | tag `v0.1.0`, commit `1cda9075f3121e9d4db0ac88e7d258f725cf81ee`; upstream Razdel submodule `668dbe191a5cfd94bebf9155e2ffa5f94ff3fe33` | normative product token contract to add in M4 |
 
 Natasha 0.8 declares an unpinned Git dependency on Yargy. Yargy commit
 `c670415...` is the 0.9.0 version bump published on the same date as Natasha
@@ -36,7 +36,7 @@ git clone https://github.com/natasha/yargy.git
 git -C yargy checkout c67041510d88981e19548715cd6fe6744d3e41e4
 git clone --branch 0.8 https://github.com/pymorphy2/pymorphy2.git
 git clone https://github.com/muonsoft/go-razdel.git
-git -C go-razdel checkout 5cd53c7a1d02780285406c6c9f1635a89953c27a
+git -C go-razdel checkout v0.1.0
 git -C go-razdel submodule update --init --recursive
 ```
 

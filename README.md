@@ -134,7 +134,7 @@ restored, err := guard.Restore(ctx, llmResponse, masked.Tokens)
 | `имя отчество фамилия`, `фамилия имя отчество` | Bounded declined forms (nominative/dative/instrumental) |
 | `фамилия И. О.`, `И. О. фамилия` | Initials and dots входят в единый span |
 
-Одиночные имена/фамилии, street-like contexts, lowercase pairs и произвольные пары capitalized слов **не** принимаются. Tokenization выполняет pinned `github.com/muonsoft/go-razdel`; quality boundary — `testdata/person/cases.jsonl` и `docs/person-quality-report.md`.
+Одиночные имена/фамилии, street-like contexts, lowercase pairs и произвольные пары capitalized слов **не** принимаются. Tokenization выполняет `github.com/muonsoft/go-razdel` v0.1.0; quality boundary — `testdata/person/cases.jsonl` и `docs/person-quality-report.md`.
 
 ### Russian ADDRESS (M5)
 

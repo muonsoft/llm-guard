@@ -15,9 +15,9 @@ Versioned black-box evaluation for the conservative RU `NewPersonDetector`.
 
 ## Pinned production dependency
 
-| Module | Pseudo-version | Commit |
+| Module | Version | Commit |
 |---|---|---|
-| `github.com/muonsoft/go-razdel` | `v0.0.0-20260425122647-5cd53c7a1d02` | `5cd53c7a1d02780285406c6c9f1635a89953c27a` |
+| `github.com/muonsoft/go-razdel` | `v0.1.0` | `1cda9075f3121e9d4db0ac88e7d258f725cf81ee` |
 
 ## Pinned reference baseline
 

@@ -29,14 +29,14 @@ when they are not runtime-linked.
 ## Go modules (`go list -m all`)
 
 Evidence: committed `go.mod` / `go.sum` and module `LICENSE` files in the Go
-module cache at audit time (2026-08-12). Production notices with full MIT text:
+module cache at audit time (2026-08-24). Production notices with full MIT text:
 [THIRD_PARTY_NOTICES](../THIRD_PARTY_NOTICES).
 
 | Module | Version | License (evidence) | Role | Class | Source zip / runtime |
 | --- | --- | --- | --- | --- | --- |
 | `github.com/muonsoft/llm-guard` | (workspace) | MIT (`LICENSE`) | main library | (b) | yes / n/a |
 | `github.com/muonsoft/errors` | v0.5.0 | MIT; Copyright (c) 2022 MuonSoft | direct runtime dependency | (a) | separate module / yes |
-| `github.com/muonsoft/go-razdel` | v0.0.0-20260425122647-5cd53c7a1d02 | MIT; Copyright (c) 2026 MuonSoft; ports Razdel `668dbe191a5cfd94bebf9155e2ffa5f94ff3fe33` | direct runtime tokenization | (a) | separate module / yes |
+| `github.com/muonsoft/go-razdel` | v0.1.0 | MIT; Copyright (c) 2026 MuonSoft; ports Razdel `668dbe191a5cfd94bebf9155e2ffa5f94ff3fe33` | direct runtime tokenization | (a) | separate module / yes |
 | `github.com/stretchr/testify` | v1.11.1 | MIT (module `LICENSE`) | test-only assertions | (a) | separate module / no |
 | `github.com/stretchr/objx` | v0.5.2 | MIT (module `LICENSE`) | testify dependency | (a) | separate module / no |
 | `github.com/davecgh/go-spew` | v1.1.1 | ISC (module `LICENSE`) | testify dependency | (a) | separate module / no |

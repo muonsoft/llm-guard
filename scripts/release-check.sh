@@ -139,7 +139,7 @@ run_license() {
 	for needle in \
 		'github.com/muonsoft/errors v0.5.0' \
 		'Copyright (c) 2022 MuonSoft' \
-		'github.com/muonsoft/go-razdel v0.0.0-20260425122647-5cd53c7a1d02' \
+		'github.com/muonsoft/go-razdel v0.1.0' \
 		'Copyright (c) 2026 MuonSoft' \
 		'668dbe191a5cfd94bebf9155e2ffa5f94ff3fe33' \
 		'Copyright (c) 2017'; do

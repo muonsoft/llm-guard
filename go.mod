@@ -4,7 +4,7 @@ go 1.26.2
 
 require (
 	github.com/muonsoft/errors v0.5.0
-	github.com/muonsoft/go-razdel v0.0.0-20260425122647-5cd53c7a1d02
+	github.com/muonsoft/go-razdel v0.1.0
 	github.com/stretchr/testify v1.11.1
 )
 
