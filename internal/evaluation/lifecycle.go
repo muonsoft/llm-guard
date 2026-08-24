@@ -175,7 +175,7 @@ func evaluateLifecycleCase(ctx context.Context, guard *llmguard.Guard, rec Suite
 		if alignErr != nil {
 			return fail(LifecycleOutcomeError, alignErr.Error())
 		}
-		response := applyResponseRecipe(result.Text, lc.ResponseRecipe)
+		response := applyResponseRecipe(result.Text, lc.ResponseRecipe, inferred)
 		restored, err := guard.Restore(ctx, response, result.Tokens)
 		if err != nil {
 			return fail(LifecycleOutcomeError, "restore failed")
@@ -245,8 +245,6 @@ func errStrContainsSecret(err error, rec SuiteRecord) bool {
 // inferPlaceholderMap aligns masked text with original input using finding spans
 // and returns placeholder token → original substring mappings.
 func inferPlaceholderMap(input, masked string, findings []llmguard.Finding) (map[string]string, error) {
-	placeholders := placeholderPattern.FindAllString(masked, -1)
-
 	sorted := append([]llmguard.Finding(nil), findings...)
 	sort.Slice(sorted, func(i, j int) bool {
 		if sorted[i].Start != sorted[j].Start {
@@ -255,31 +253,31 @@ func inferPlaceholderMap(input, masked string, findings []llmguard.Finding) (map
 		return sorted[i].End < sorted[j].End
 	})
 
-	if len(placeholders) != len(sorted) {
-		if len(placeholders) == 0 && len(sorted) == 0 && masked == input {
-			return map[string]string{}, nil
+	inputPos, maskedPos := 0, 0
+	out := make(map[string]string)
+
+	for _, f := range sorted {
+		if f.Start < inputPos || f.End < f.Start || f.End > len(input) {
+			return nil, errPlaceholderAlignment
 		}
-		return nil, errPlaceholderAlignment
-	}
-	if len(placeholders) == 0 {
-		return map[string]string{}, nil
-	}
+		gap := input[inputPos:f.Start]
+		if maskedPos+len(gap) > len(masked) || masked[maskedPos:maskedPos+len(gap)] != gap {
+			return nil, errPlaceholderAlignment
+		}
+		maskedPos += len(gap)
 
-	var reconstructed strings.Builder
-	pos := 0
-	for i, f := range sorted {
-		reconstructed.WriteString(input[pos:f.Start])
-		reconstructed.WriteString(placeholders[i])
-		pos = f.End
+		rest := masked[maskedPos:]
+		loc := placeholderPattern.FindStringIndex(rest)
+		if loc == nil || loc[0] != 0 {
+			return nil, errPlaceholderAlignment
+		}
+		token := rest[:loc[1]]
+		out[token] = input[f.Start:f.End]
+		maskedPos += loc[1]
+		inputPos = f.End
 	}
-	reconstructed.WriteString(input[pos:])
-	if reconstructed.String() != masked {
+	if input[inputPos:] != masked[maskedPos:] {
 		return nil, errPlaceholderAlignment
-	}
-
-	out := make(map[string]string, len(placeholders))
-	for i, f := range sorted {
-		out[placeholders[i]] = input[f.Start:f.End]
 	}
 	return out, nil
 }
@@ -297,12 +295,12 @@ func expectedRecipeRestore(recipeText string, inferred map[string]string) string
 	return strings.NewReplacer(pairs...).Replace(recipeText)
 }
 
-func applyResponseRecipe(masked, recipe string) string {
+func applyResponseRecipe(masked, recipe string, inferred map[string]string) string {
 	switch recipe {
 	case "", "identity":
 		return masked
 	case "mutate_placeholder":
-		loc := placeholderPattern.FindStringIndex(masked)
+		loc := firstGeneratedPlaceholderIndex(masked, inferred)
 		if loc == nil {
 			return masked
 		}
@@ -324,7 +322,7 @@ func applyResponseRecipe(masked, recipe string) string {
 		mutated := token[:lastDigit] + string(replacement) + token[lastDigit+1:]
 		return masked[:loc[0]] + mutated + masked[loc[1]:]
 	case "delete_placeholder":
-		loc := placeholderPattern.FindStringIndex(masked)
+		loc := firstGeneratedPlaceholderIndex(masked, inferred)
 		if loc == nil {
 			return masked
 		}
@@ -334,4 +332,14 @@ func applyResponseRecipe(masked, recipe string) string {
 	default:
 		return masked
 	}
+}
+
+func firstGeneratedPlaceholderIndex(masked string, inferred map[string]string) []int {
+	for _, loc := range placeholderPattern.FindAllStringIndex(masked, -1) {
+		token := masked[loc[0]:loc[1]]
+		if _, ok := inferred[token]; ok {
+			return loc
+		}
+	}
+	return nil
 }

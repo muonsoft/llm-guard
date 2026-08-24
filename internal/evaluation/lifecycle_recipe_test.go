@@ -94,7 +94,7 @@ func TestExpectedRecipeRestore_WhenMutateRecipe_ExpectMutatedTokenNotWrapped(t *
 	if err != nil {
 		t.Fatalf("inferPlaceholderMap: %v", err)
 	}
-	recipe := applyResponseRecipe(masked, "mutate_placeholder")
+	recipe := applyResponseRecipe(masked, "mutate_placeholder", inferred)
 	expected := expectedRecipeRestore(recipe, inferred)
 	if strings.HasPrefix(expected, "junk ") || strings.HasSuffix(expected, " junk") {
 		t.Fatalf("expected must not be junk-wrapped, got %q", expected)
@@ -122,10 +122,43 @@ func TestExpectedRecipeRestore_WhenJunkWrapped_ExpectNotEqualToExpected(t *testi
 	}
 }
 
+func TestInferPlaceholderMap_WhenPreservedLiteralAndEmail_ExpectGeneratedTokenOnly(t *testing.T) {
+	t.Parallel()
+	literal := "{{LLMG_ffffffffffffffffffffffffffffffff_9999}}"
+	input := literal + " a@b.co"
+	gen := "{{LLMG_" + strings.Repeat("a", 32) + "_0001}}"
+	masked := literal + " " + gen
+	findings := []llmguard.Finding{{Entity: llmguard.EntityEmail, Start: len(literal) + 1, End: len(input)}}
+	inferred, err := inferPlaceholderMap(input, masked, findings)
+	if err != nil {
+		t.Fatalf("inferPlaceholderMap: %v", err)
+	}
+	if inferred[gen] != "a@b.co" {
+		t.Fatalf("inferred[gen] = %q, want email span", inferred[gen])
+	}
+	if _, ok := inferred[literal]; ok {
+		t.Fatalf("preserved literal %q must not be in inferred map", literal)
+	}
+}
+
+func TestInferPlaceholderMap_WhenZeroFindingsAndLiteralOnly_ExpectEmptyMap(t *testing.T) {
+	t.Parallel()
+	literal := "{{LLMG_ffffffffffffffffffffffffffffffff_9999}}"
+	inferred, err := inferPlaceholderMap(literal, literal, nil)
+	if err != nil {
+		t.Fatalf("inferPlaceholderMap: %v", err)
+	}
+	if len(inferred) != 0 {
+		t.Fatalf("inferred = %v, want empty map", inferred)
+	}
+}
+
 func TestApplyResponseRecipe_WhenMutatePlaceholder_ExpectDigitChanged(t *testing.T) {
 	t.Parallel()
 	masked := "Contact {{LLMG_0123456789abcdef0123456789abcdef_0001}} please"
-	out := applyResponseRecipe(masked, "mutate_placeholder")
+	token := "{{LLMG_0123456789abcdef0123456789abcdef_0001}}"
+	inferred := map[string]string{token: "a@b.co"}
+	out := applyResponseRecipe(masked, "mutate_placeholder", inferred)
 	if out == masked {
 		t.Fatal("expected mutated placeholder")
 	}
@@ -136,20 +169,56 @@ func TestApplyResponseRecipe_WhenMutatePlaceholder_ExpectDigitChanged(t *testing
 	if loc == nil {
 		t.Fatal("expected placeholder to remain")
 	}
-	token := out[loc[0]:loc[1]]
-	if token == "{{LLMG_0123456789abcdef0123456789abcdef_0001}}" {
-		t.Fatalf("expected digit mutation in token %q", token)
+	mutatedToken := out[loc[0]:loc[1]]
+	if mutatedToken == "{{LLMG_0123456789abcdef0123456789abcdef_0001}}" {
+		t.Fatalf("expected digit mutation in token %q", mutatedToken)
 	}
 }
 
 func TestApplyResponseRecipe_WhenDeletePlaceholder_ExpectSingleRemoval(t *testing.T) {
 	t.Parallel()
-	masked := "a {{LLMG_0123456789abcdef0123456789abcdef_0001}} b {{LLMG_0123456789abcdef0123456789abcdef_0002}}"
-	out := applyResponseRecipe(masked, "delete_placeholder")
+	token1 := "{{LLMG_0123456789abcdef0123456789abcdef_0001}}"
+	token2 := "{{LLMG_0123456789abcdef0123456789abcdef_0002}}"
+	masked := "a " + token1 + " b " + token2
+	inferred := map[string]string{token1: "x", token2: "y"}
+	out := applyResponseRecipe(masked, "delete_placeholder", inferred)
 	if !placeholderPattern.MatchString(out) {
 		t.Fatal("expected one placeholder to remain")
 	}
 	if len(placeholderPattern.FindAllStringIndex(out, -1)) != 1 {
 		t.Fatalf("expected exactly one placeholder, got %q", out)
+	}
+}
+
+func TestApplyResponseRecipe_WhenPreservedLiteralFirst_ExpectMutateGeneratedToken(t *testing.T) {
+	t.Parallel()
+	literal := "{{LLMG_ffffffffffffffffffffffffffffffff_9999}}"
+	gen := "{{LLMG_" + strings.Repeat("c", 32) + "_0001}}"
+	masked := literal + " " + gen
+	inferred := map[string]string{gen: "a@b.co"}
+	out := applyResponseRecipe(masked, "mutate_placeholder", inferred)
+	if out == masked {
+		t.Fatal("expected mutated generated placeholder")
+	}
+	if !strings.Contains(out, literal) {
+		t.Fatalf("preserved literal must remain, got %q", out)
+	}
+	if strings.Contains(out, gen) {
+		t.Fatalf("generated token must be mutated, still present as %q", gen)
+	}
+}
+
+func TestApplyResponseRecipe_WhenPreservedLiteralFirst_ExpectDeleteGeneratedToken(t *testing.T) {
+	t.Parallel()
+	literal := "{{LLMG_ffffffffffffffffffffffffffffffff_9999}}"
+	gen := "{{LLMG_" + strings.Repeat("d", 32) + "_0001}}"
+	masked := literal + " " + gen
+	inferred := map[string]string{gen: "a@b.co"}
+	out := applyResponseRecipe(masked, "delete_placeholder", inferred)
+	if !strings.Contains(out, literal) {
+		t.Fatalf("preserved literal must remain, got %q", out)
+	}
+	if strings.Contains(out, gen) {
+		t.Fatalf("generated token must be removed, got %q", out)
 	}
 }

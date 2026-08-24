@@ -3,6 +3,7 @@ package evaluation
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"os"
 	"strings"
 )
@@ -127,6 +128,9 @@ func validateProfileThreshold(name string, profile ProfileThreshold) error {
 	if _, ok := allowedThresholdStatuses[profile.Status]; !ok {
 		return fmt.Errorf("thresholds profile %q: unknown status %q", name, profile.Status)
 	}
+	if err := validateProfileTopLevelBounds(name, profile); err != nil {
+		return err
+	}
 	if err := validateNumericBoundsKeys(profile, name); err != nil {
 		return err
 	}
@@ -197,6 +201,10 @@ func validateNestedBounds(profileName, section, key string, bounds NumericBounds
 	if profileName == "exposure" && section == "entities" {
 		return fmt.Errorf("thresholds profile %q %s[%q]: nested bounds are not supported", profileName, section, key)
 	}
+	path := fmt.Sprintf(" %s[%s]", section, key)
+	if err := validateNumericBoundsValues(profileName, path, bounds); err != nil {
+		return err
+	}
 	raw, err := json.Marshal(bounds)
 	if err != nil {
 		return err
@@ -209,6 +217,60 @@ func validateNestedBounds(profileName, section, key string, bounds NumericBounds
 		if _, ok := allowed[k]; !ok {
 			return fmt.Errorf("thresholds profile %q %s[%q]: unknown field %q", profileName, section, key, k)
 		}
+	}
+	return nil
+}
+
+func validateProfileTopLevelBounds(name string, profile ProfileThreshold) error {
+	bounds := NumericBounds{
+		MaxFP:                   profile.MaxFP,
+		MaxFN:                   profile.MaxFN,
+		MinPrecision:            profile.MinPrecision,
+		MinRecall:               profile.MinRecall,
+		MinByteCoverage:         profile.MinByteCoverage,
+		MaxLeakedSensitiveBytes: profile.MaxLeakedSensitiveBytes,
+	}
+	return validateNumericBoundsValues(name, "", bounds)
+}
+
+func validateNumericBoundsValues(profileName, path string, bounds NumericBounds) error {
+	if err := validateRateBound(profileName, path, "min_precision", bounds.MinPrecision); err != nil {
+		return err
+	}
+	if err := validateRateBound(profileName, path, "min_recall", bounds.MinRecall); err != nil {
+		return err
+	}
+	if err := validateRateBound(profileName, path, "min_byte_coverage", bounds.MinByteCoverage); err != nil {
+		return err
+	}
+	if err := validateNonNegativeBound(profileName, path, "max_fp", bounds.MaxFP); err != nil {
+		return err
+	}
+	if err := validateNonNegativeBound(profileName, path, "max_fn", bounds.MaxFN); err != nil {
+		return err
+	}
+	if err := validateNonNegativeBound(profileName, path, "max_leaked_sensitive_bytes", bounds.MaxLeakedSensitiveBytes); err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateRateBound(profileName, path, field string, v *float64) error {
+	if v == nil {
+		return nil
+	}
+	if math.IsNaN(*v) || math.IsInf(*v, 0) || *v < 0 || *v > 1 {
+		return fmt.Errorf(`thresholds profile %q%s: %s must be in [0,1]`, profileName, path, field)
+	}
+	return nil
+}
+
+func validateNonNegativeBound(profileName, path, field string, v *float64) error {
+	if v == nil {
+		return nil
+	}
+	if math.IsNaN(*v) || math.IsInf(*v, 0) || *v < 0 {
+		return fmt.Errorf(`thresholds profile %q%s: %s must be >= 0`, profileName, path, field)
 	}
 	return nil
 }

@@ -40,6 +40,55 @@ func cyrillicFIOEmailSuite(recipe string) evaluation.Suite {
 	}
 }
 
+func literalEmailSuite(recipe string) evaluation.Suite {
+	literal := "{{LLMG_ffffffffffffffffffffffffffffffff_9999}}"
+	input := literal + " a@b.co"
+	return evaluation.Suite{
+		SuiteID:        "s",
+		MappingVersion: "v1",
+		SourceIDs:      []string{"generated"},
+		Records: []evaluation.SuiteRecord{{
+			SchemaVersion:  evaluation.SuiteSchemaVersion,
+			SuiteID:        "s",
+			SourceID:       "generated",
+			SourceRecordID: "literal-email",
+			MappingVersion: "v1",
+			Input:          input,
+			InputSHA256:    "placeholder-sha256",
+			Annotations: []evaluation.SuiteAnnotation{
+				{SourceLabel: "EMAIL", MappedEntity: "EMAIL", Start: len(literal) + 1, End: len(input), Disposition: evaluation.DispositionSupported},
+			},
+			Lifecycle: &evaluation.SuiteLifecycle{ExpectedAction: "mask", ResponseRecipe: recipe},
+		}},
+	}
+}
+
+func TestEvaluateLifecycle_WhenPreservedLiteralEmailIdentity_ExpectNoRegression(t *testing.T) {
+	t.Parallel()
+	report, err := evaluation.EvaluateLifecycle(context.Background(), lifecycleGuard(t), literalEmailSuite("identity"))
+	require.NoError(t, err)
+	assert.False(t, report.HasLifecycleRegression())
+	assert.Empty(t, report.Diagnostics)
+}
+
+func TestEvaluateLifecycle_WhenPreservedLiteralEmailMutate_ExpectNoRegression(t *testing.T) {
+	t.Parallel()
+	report, err := evaluation.EvaluateLifecycle(context.Background(), lifecycleGuard(t), literalEmailSuite("mutate_placeholder"))
+	require.NoError(t, err)
+	assert.False(t, report.HasLifecycleRegression())
+	assert.GreaterOrEqual(t, report.MutationMiss, 1)
+	assert.Empty(t, report.Diagnostics)
+}
+
+func TestEvaluateLifecycle_WhenPreservedLiteralEmailDelete_ExpectNoRegression(t *testing.T) {
+	t.Parallel()
+	report, err := evaluation.EvaluateLifecycle(context.Background(), lifecycleGuard(t), literalEmailSuite("delete_placeholder"))
+	require.NoError(t, err)
+	assert.False(t, report.HasLifecycleRegression())
+	assert.GreaterOrEqual(t, report.MutationMiss, 1)
+	assert.Empty(t, report.Diagnostics)
+}
+
 func TestEvaluateLifecycle_WhenCyrillicFIOEmailMutate_ExpectNoRegression(t *testing.T) {
 	t.Parallel()
 	report, err := evaluation.EvaluateLifecycle(context.Background(), lifecycleGuard(t), cyrillicFIOEmailSuite("mutate_placeholder"))
