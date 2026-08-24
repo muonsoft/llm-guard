@@ -34,9 +34,17 @@ OSS stabilization. Tag/release publication is tracked separately in
 | 26 | Release dry-run without publication | met | `scripts/release-check.sh`, `.github/workflows/release-check.yml` |
 | 27 | Known limitations published | met | [known-limitations.md](known-limitations.md) |
 | 28 | Quality/benchmark regression vs M7 | met | [m8-quality-benchmark-comparison.md](m8-quality-benchmark-comparison.md) |
+| 29 | Offline evaluation gates (v1 + generated smoke) | met | CI `evaluation` + `evaluation-smoke`; `./scripts/release-check.sh` |
+| 30 | External diagnostic baseline (RedMadRobot) | met (diagnostic) | [evaluation/external-baseline.md](evaluation/external-baseline.md); weekly `evaluation-external.yml` |
 
 ## Release boundary
 
+- **Offline gates (mandatory):** `go test ./...`, schema v1 corpus, generated
+  contract/lifecycle smoke — must be green for release dry-run.
+- **External evidence (diagnostic):** RedMadRobot exposure/contract aggregates
+  in [evaluation/external-baseline.md](evaluation/external-baseline.md); refresh
+  with `./scripts/release-check.sh evidence` when updating baseline at a release
+  commit. Staleness during development does not block default dry-run.
 - Repository readiness for `v0.1.0`: **yes** when `./scripts/release-check.sh` is green.
 - Published `v0.1.0` tag/release exists: **no** until manual steps in
   [release-checklist.md](release-checklist.md).

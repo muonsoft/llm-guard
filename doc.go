@@ -1,6 +1,14 @@
 // Package llmguard provides local detection, reversible masking, and restore for
 // sensitive entities in text using pluggable detectors.
 //
+// llm-guard is a precision-oriented prefilter: it reduces the risk of sending
+// documented supported PII and secret forms to an LLM. It does not replace
+// high-recall DLP, generic NER, or exhaustive data-loss prevention. Supported
+// scope includes multi-token Russian FIO, compositional ADDRESS (street+house),
+// checksum-valid structured identifiers, and conservative secret patterns.
+// Unsupported examples include single given names, city-only addresses,
+// checksum-invalid INN/SNILS, and arbitrary unknown credential shapes.
+//
 // # Import path and toolchain
 //
 // Canonical module path: github.com/muonsoft/llm-guard (Go 1.26.2+).

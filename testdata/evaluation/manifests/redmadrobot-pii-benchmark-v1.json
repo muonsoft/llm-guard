@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "id": "redmadrobot-pii-benchmark",
+  "canonical_url": "https://huggingface.co/datasets/redmadrobot-rnd/pii_benchmark",
+  "revision": "f77ea831274daf980cc45c61a93c226be9d978d6",
+  "digest_sha256": "6bf544a380a3ee5bec94b946124bea3afaecce49e734679ad0f0c0e7c12977bb",
+  "license": "MIT",
+  "attribution": "RedMadRobot RnD, Russian PII NER Benchmark (https://huggingface.co/datasets/redmadrobot-rnd/pii_benchmark), revision f77ea831274daf980cc45c61a93c226be9d978d6. Licensed under MIT as declared in the dataset card. Cite the repository as requested by the card.",
+  "distribution": "cache-only",
+  "adapter_version": "1.0.0"
+}

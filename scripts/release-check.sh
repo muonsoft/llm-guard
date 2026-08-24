@@ -1,6 +1,6 @@
 #!/bin/sh
 # Side-effect-free release readiness checks for llm-guard v0.1.0.
-# Modes: consumer | license | fuzz | (default) full dry-run.
+# Modes: consumer | license | fuzz | evidence | (default) full dry-run.
 # No tag, push, upload, publish, or release mutation.
 set -eu
 
@@ -10,6 +10,8 @@ cd "$ROOT"
 FUZZ_TIME="${FUZZ_TIME:-2s}"
 MODULE_MANIFEST="${MODULE_MANIFEST:-docs/dependency-license-modules.txt}"
 INVENTORY="${INVENTORY:-docs/dependency-license-inventory.md}"
+EXTERNAL_BASELINE="${EXTERNAL_BASELINE:-docs/evaluation/external-baseline.json}"
+GENERATED_SMOKE="${GENERATED_SMOKE:-./testdata/evaluation/generated/smoke.jsonl}"
 
 log() {
 	printf 'release-check: %s\n' "$1"
@@ -75,11 +77,47 @@ run_consumer() {
 }
 
 run_evaluation() {
-	log 'evaluation regression'
+	log 'evaluation regression (schema v1 corpus)'
 	go run ./cmd/llmguard-eval \
 		-corpus ./testdata/evaluation/cases.jsonl \
 		-format json \
 		-fail-on-regression
+}
+
+run_generated_smoke() {
+	log 'generated evaluation smoke (contract + lifecycle)'
+	go run ./cmd/llmguard-eval \
+		-suite "$GENERATED_SMOKE" \
+		-profile contract \
+		-format json \
+		-fail-on-regression
+	go run ./cmd/llmguard-eval \
+		-suite "$GENERATED_SMOKE" \
+		-profile lifecycle \
+		-format json \
+		-fail-on-regression
+}
+
+require_external_baseline() {
+	log 'external baseline metadata'
+	if [ ! -f "$EXTERNAL_BASELINE" ]; then
+		die "missing external baseline: $EXTERNAL_BASELINE"
+	fi
+	for key in measured_commit source_id mapping_version exposure_summary; do
+		if ! grep -Fq "\"$key\"" "$EXTERNAL_BASELINE"; then
+			die "external baseline missing required key: $key"
+		fi
+	done
+}
+
+run_evidence() {
+	require_external_baseline
+	measured_commit="$(grep -o '"measured_commit"[[:space:]]*:[[:space:]]*"[^"]*"' "$EXTERNAL_BASELINE" | sed 's/.*"\([^"]*\)"$/\1/')"
+	head_commit="$(git rev-parse HEAD)"
+	if [ "$measured_commit" != "$head_commit" ]; then
+		die "external baseline measured_commit ($measured_commit) does not match HEAD ($head_commit); refresh baseline or use default dry-run"
+	fi
+	log "external baseline commit matches HEAD ($head_commit)"
 }
 
 run_license() {
@@ -189,6 +227,8 @@ run_full() {
 	run_race
 	run_consumer
 	run_evaluation
+	run_generated_smoke
+	require_external_baseline
 	run_license
 	(run_fuzz)
 	run_benchmark_smoke
@@ -203,12 +243,16 @@ Modes:
   consumer   compile and run external-module fixture via local replace
   license    verify go list -m all against committed inventory/notices
   fuzz       bounded smoke for required fuzz targets
-  (none)     full side-effect-free release dry-run
+  evidence   verify committed external-baseline.json measured_commit equals HEAD
+  (none)     full side-effect-free release dry-run (network-free; does not require
+             measured_commit == HEAD)
 
 Environment:
   FUZZ_TIME           per-target fuzz duration (default: 2s)
   MODULE_MANIFEST     module list file (default: docs/dependency-license-modules.txt)
   INVENTORY           detailed inventory file (default: docs/dependency-license-inventory.md)
+  EXTERNAL_BASELINE   safe external baseline JSON (default: docs/evaluation/external-baseline.json)
+  GENERATED_SMOKE     generated suite v2 smoke path (default: ./testdata/evaluation/generated/smoke.jsonl)
 EOF
 }
 
@@ -229,6 +273,9 @@ main() {
 		;;
 	fuzz)
 		run_fuzz
+		;;
+	evidence)
+		run_evidence
 		;;
 	-h | --help | help)
 		usage

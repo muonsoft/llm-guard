@@ -24,6 +24,8 @@ go test ./...
 go vet ./...
 go test -race ./...
 go run ./cmd/llmguard-eval -corpus ./testdata/evaluation/cases.jsonl -format json -fail-on-regression
+go run ./cmd/llmguard-eval -suite ./testdata/evaluation/generated/smoke.jsonl -profile contract -format json -fail-on-regression
+go run ./cmd/llmguard-eval -suite ./testdata/evaluation/generated/smoke.jsonl -profile lifecycle -format json -fail-on-regression
 git diff --check
 ```
 
@@ -37,7 +39,11 @@ Focused modes (also exercised in CI):
 
 Confirm:
 
-- [ ] Full dry-run exits zero
+- [ ] Full dry-run exits zero (network-free; does not require external baseline
+      `measured_commit` to equal HEAD)
+- [ ] Committed `docs/evaluation/external-baseline.json` present with required keys
+- [ ] After external re-measurement at release commit, run
+      `./scripts/release-check.sh evidence` to verify baseline freshness
 - [ ] External consumer passes via local `replace` (API boundary only; does not
       prove module proxy availability pre-tag)
 - [ ] License manifest matches `go list -m all`
@@ -50,8 +56,10 @@ Confirm:
 ## CI verification
 
 - [ ] Pull-request CI green on Go `1.26.2` and `stable` (test/vet)
-- [ ] Race, consumer, evaluation, fuzz, and license jobs green
+- [ ] Race, consumer, evaluation, **evaluation-smoke**, fuzz, and license jobs green
 - [ ] Manual **Release check (dry-run)** workflow green (read-only permissions)
+- [ ] External RedMadRobot lane (`evaluation-external.yml`) optional; scheduled
+      diagnostic only — failure on Hugging Face outage is acceptable
 
 ## Manual maintainer approval
 

@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "id": "gate-exposure-test",
+  "profiles": {
+    "exposure": {
+      "status": "gate",
+      "max_leaked_sensitive_bytes": 0,
+      "min_byte_coverage": 1.0
+    }
+  }
+}

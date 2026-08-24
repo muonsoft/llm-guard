@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "report_kind": "external_prefilter_baseline",
+  "source_id": "redmadrobot-pii-benchmark",
+  "mapping_version": "redmadrobot-v1",
+  "measured_commit": "c351ecc65412313de67db3ca84c9a0eb8945e257",
+  "environment": {
+    "go_version": "go1.26.2",
+    "os_arch": "linux/amd64"
+  },
+  "manifest": {
+    "canonical_url": "https://huggingface.co/datasets/redmadrobot-rnd/pii_benchmark",
+    "revision": "f77ea831274daf980cc45c61a93c226be9d978d6",
+    "digest_sha256": "6bf544a380a3ee5bec94b946124bea3afaecce49e734679ad0f0c0e7c12977bb",
+    "license": "MIT"
+  },
+  "record_count": 2841,
+  "ignored_records": 2,
+  "ignored_reasons": {
+    "adapter_token_not_found_in_text": 2
+  },
+  "profile_scope": {
+    "contract": "supported annotations only; exact (entity, start, end) UTF-8 byte spans; diagnostic — not a release SLO",
+    "exposure": "supported and unsupported source annotations; byte-interval union coverage; diagnostic — not a DLP guarantee"
+  },
+  "commands": [
+    "go run ./cmd/llmguard-eval-data -action fetch -manifest ./testdata/evaluation/manifests/redmadrobot-pii-benchmark-v1.json -cache ./.cache/llm-guard/evaluation",
+    "go run ./cmd/llmguard-eval-data -action normalize -manifest ./testdata/evaluation/manifests/redmadrobot-pii-benchmark-v1.json -mapping ./testdata/evaluation/mappings/redmadrobot-v1.json -cache ./.cache/llm-guard/evaluation",
+    "go run ./cmd/llmguard-eval -suite ./.cache/llm-guard/evaluation/normalized/redmadrobot-pii-benchmark.jsonl -profile exposure -format json",
+    "go run ./cmd/llmguard-eval -suite ./.cache/llm-guard/evaluation/normalized/redmadrobot-pii-benchmark.jsonl -profile contract -format json"
+  ],
+  "exposure_summary": {
+    "status": "diagnostic",
+    "sensitive_bytes": 87279,
+    "covered_sensitive_bytes": 14542,
+    "leaked_sensitive_bytes": 72737,
+    "overmatched_bytes": 678,
+    "byte_coverage": 0.166615107872455
+  },
+  "contract_summary": {
+    "status": "fail",
+    "tp": 662,
+    "fp": 119,
+    "fn": 1717,
+    "note": "Expected diagnostic outcome on external holdout; not a release gate",
+    "entities": [
+      {"entity": "EMAIL", "tp": 62, "fp": 0, "fn": 159, "precision": 1.0, "recall": 0.28},
+      {"entity": "PHONE", "tp": 103, "fp": 2, "fn": 68, "precision": 0.98, "recall": 0.60},
+      {"entity": "INN", "tp": 192, "fp": 4, "fn": 71, "precision": 0.98, "recall": 0.73},
+      {"entity": "IP_ADDRESS", "tp": 94, "fp": 4, "fn": 61, "precision": 0.96, "recall": 0.61},
+      {"entity": "URL", "tp": 116, "fp": 2, "fn": 88, "precision": 0.98, "recall": 0.57},
+      {"entity": "BANK_CARD", "tp": 61, "fp": 23, "fn": 142, "precision": 0.73, "recall": 0.30},
+      {"entity": "ADDRESS", "tp": 27, "fp": 37, "fn": 113, "precision": 0.42, "recall": 0.19},
+      {"entity": "PERSON", "tp": 2, "fp": 32, "fn": 303, "precision": 0.06, "recall": 0.007},
+      {"entity": "PASSPORT", "tp": 4, "fp": 15, "fn": 490, "precision": 0.21, "recall": 0.008},
+      {"entity": "SNILS", "tp": 1, "fp": 0, "fn": 222, "precision": 1.0, "recall": 0.004}
+    ]
+  },
+  "limitations": [
+    "Prefilter positioning: reduces risk for documented supported forms; does not replace high-recall DLP or generic NER",
+    "Unsupported source labels (OMS, DRIVER_LICENSE, MILITARY_ID, BIRTH_CERTIFICATE, etc.) are exposure-only",
+    "Conservative PERSON requires multi-token FIO composition; single-name runs are largely unsupported",
+    "Conservative ADDRESS requires street+house composition; city-only or street-only spans are unsupported",
+    "Checksum-invalid INN/SNILS and unknown secret shapes are intentionally out of contract scope",
+    "Contract F1 on external holdout must not be interpreted as a security or completeness guarantee"
+  ]
+}

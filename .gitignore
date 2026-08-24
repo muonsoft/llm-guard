@@ -1,2 +1,3 @@
 /.agent-orchestration/
+.cache/llm-guard/
 tools/natasha-reference/__pycache__/

@@ -3,6 +3,22 @@
 Explicit boundaries for `github.com/muonsoft/llm-guard` v0.1.0 MVP. This list
 does not promise future fixes or timelines.
 
+## Prefilter positioning
+
+llm-guard is a **precision-oriented prefilter**, not high-recall DLP or generic
+NER. It reduces the risk of sending **documented supported** PII and secret
+forms to an LLM. Operators must add extra controls for high-risk deployments
+where any residual leakage is unacceptable.
+
+**Supported examples (non-exhaustive):** multi-token Russian FIO, compositional
+ADDRESS with street+house, checksum-valid INN/SNILS where the detector validates,
+structurally valid JWT/PEM/API-key/DSN patterns.
+
+**Unsupported / high false-negative risk:** single given names or surnames,
+city-only or street-only addresses, checksum-invalid INN/SNILS, unknown secret
+shapes, and source labels without a product mapping (exposure-only on external
+benchmarks).
+
 ## Detection scope
 
 1. **Single-name PERSON gaps** — isolated given names or surnames without a
@@ -28,8 +44,9 @@ does not promise future fixes or timelines.
 
 ## Security and policy
 
-10. **No zero-FN guarantee** — conservative detectors may miss sensitive data;
-    operators must not treat the library as exhaustive DLP.
+10. **No zero-FN guarantee** — conservative prefilter detectors may miss sensitive
+    data; operators must not treat the library as exhaustive DLP. For high-risk
+    use cases, combine with additional review, allowlists, or downstream controls.
 11. **No prompt-injection protection** — text sanitization for model abuse is out
     of scope.
 12. **No content moderation** — policy focuses on PII/secrets masking, not safety
@@ -41,7 +58,9 @@ does not promise future fixes or timelines.
 ## Operations and quality evidence
 
 15. **Representative evaluation corpus** — unified `testdata/evaluation/cases.jsonl`
-    is a smoke/regression boundary; family corpora are authoritative per entity.
+    is a schema v1 conformance smoke; family corpora are authoritative per entity.
+    External holdout metrics ([evaluation/external-baseline.md](evaluation/external-baseline.md))
+    are diagnostic and must not be read as DLP guarantees.
 16. **Benchmarks are not SLOs** — numbers vary by hardware; see
     [benchmark-baseline.md](benchmark-baseline.md) and
     [m8-quality-benchmark-comparison.md](m8-quality-benchmark-comparison.md).

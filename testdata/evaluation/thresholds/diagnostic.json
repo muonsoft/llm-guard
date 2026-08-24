@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "id": "diagnostic-default",
+  "profiles": {
+    "contract": {
+      "status": "diagnostic"
+    },
+    "exposure": {
+      "status": "diagnostic"
+    }
+  }
+}
