@@ -27,6 +27,10 @@ go test ./...
 go vet ./...
 go test -race ./...
 go run ./cmd/llmguard-eval -corpus ./testdata/evaluation/cases.jsonl -format markdown -fail-on-regression
+go run ./cmd/llmguard-eval -suite ./testdata/evaluation/generated/smoke.jsonl -profile contract -format json -fail-on-regression
+go run ./cmd/llmguard-eval -suite ./testdata/evaluation/generated/smoke.jsonl -profile lifecycle -format json -fail-on-regression
 ```
 
 External fetch is explicit-only and is not part of the default PR gate.
+RedMadRobot aggregates in `docs/evaluation/external-baseline.md` are diagnostic,
+not a release SLO.
