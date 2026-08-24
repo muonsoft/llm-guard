@@ -18,6 +18,46 @@ func lifecycleGuard(t *testing.T) *llmguard.Guard {
 	return guard
 }
 
+func cyrillicFIOEmailSuite(recipe string) evaluation.Suite {
+	return evaluation.Suite{
+		SuiteID:        "s",
+		MappingVersion: "v1",
+		SourceIDs:      []string{"generated"},
+		Records: []evaluation.SuiteRecord{{
+			SchemaVersion:  evaluation.SuiteSchemaVersion,
+			SuiteID:        "s",
+			SourceID:       "generated",
+			SourceRecordID: "cyrillic-fio-email",
+			MappingVersion: "v1",
+			Input:          "Иван Петров a@b.co",
+			InputSHA256:    "placeholder-sha256",
+			Annotations: []evaluation.SuiteAnnotation{
+				{SourceLabel: "PERSON", MappedEntity: "PERSON", Start: 0, End: 21, Disposition: evaluation.DispositionSupported},
+				{SourceLabel: "EMAIL", MappedEntity: "EMAIL", Start: 22, End: 28, Disposition: evaluation.DispositionSupported},
+			},
+			Lifecycle: &evaluation.SuiteLifecycle{ExpectedAction: "mask", ResponseRecipe: recipe},
+		}},
+	}
+}
+
+func TestEvaluateLifecycle_WhenCyrillicFIOEmailMutate_ExpectNoRegression(t *testing.T) {
+	t.Parallel()
+	report, err := evaluation.EvaluateLifecycle(context.Background(), lifecycleGuard(t), cyrillicFIOEmailSuite("mutate_placeholder"))
+	require.NoError(t, err)
+	assert.False(t, report.HasLifecycleRegression())
+	assert.GreaterOrEqual(t, report.MutationMiss, 1)
+	assert.Empty(t, report.Diagnostics)
+}
+
+func TestEvaluateLifecycle_WhenCyrillicFIOEmailDelete_ExpectNoRegression(t *testing.T) {
+	t.Parallel()
+	report, err := evaluation.EvaluateLifecycle(context.Background(), lifecycleGuard(t), cyrillicFIOEmailSuite("delete_placeholder"))
+	require.NoError(t, err)
+	assert.False(t, report.HasLifecycleRegression())
+	assert.GreaterOrEqual(t, report.MutationMiss, 1)
+	assert.Empty(t, report.Diagnostics)
+}
+
 func TestEvaluateLifecycle_WhenSmokeSuiteIdentity_ExpectPass(t *testing.T) {
 	t.Parallel()
 	suite, err := evaluation.LoadSuite(filepath.Join(repoRoot(t), "testdata", "evaluation", "generated", "smoke.jsonl"))

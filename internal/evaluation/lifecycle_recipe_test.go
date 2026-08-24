@@ -3,13 +3,21 @@ package evaluation
 import (
 	"strings"
 	"testing"
+
+	"github.com/muonsoft/llm-guard"
 )
+
+func contactEmailFindings() []llmguard.Finding {
+	return []llmguard.Finding{
+		{Entity: llmguard.EntityEmail, Start: 8, End: 14},
+	}
+}
 
 func TestInferPlaceholderMap_WhenAlignedMask_ExpectTokenValue(t *testing.T) {
 	t.Parallel()
 	input := "Contact a@b.co"
 	masked := "Contact {{LLMG_0123456789abcdef0123456789abcdef_0001}}"
-	inferred, err := inferPlaceholderMap(input, masked)
+	inferred, err := inferPlaceholderMap(input, masked, contactEmailFindings())
 	if err != nil {
 		t.Fatalf("inferPlaceholderMap: %v", err)
 	}
@@ -19,11 +27,57 @@ func TestInferPlaceholderMap_WhenAlignedMask_ExpectTokenValue(t *testing.T) {
 	}
 }
 
+func TestInferPlaceholderMap_WhenCyrillicFIOAndEmail_ExpectSpanAlignedValues(t *testing.T) {
+	t.Parallel()
+	input := "Иван Петров a@b.co"
+	ns := strings.Repeat("a", 32)
+	t1 := "{{LLMG_" + ns + "_0001}}"
+	t2 := "{{LLMG_" + ns + "_0002}}"
+	masked := t1 + " " + t2
+	findings := []llmguard.Finding{
+		{Entity: llmguard.EntityPerson, Start: 0, End: 21},
+		{Entity: llmguard.EntityEmail, Start: 22, End: 28},
+	}
+	inferred, err := inferPlaceholderMap(input, masked, findings)
+	if err != nil {
+		t.Fatalf("inferPlaceholderMap: %v", err)
+	}
+	if inferred[t1] != "Иван Петров" {
+		t.Fatalf("T1 = %q, want full person span", inferred[t1])
+	}
+	if inferred[t2] != "a@b.co" {
+		t.Fatalf("T2 = %q, want email span", inferred[t2])
+	}
+}
+
+func TestInferPlaceholderMap_WhenFindingsReverseSliceOrder_ExpectStartOrderMapping(t *testing.T) {
+	t.Parallel()
+	input := "Иван Петров a@b.co"
+	ns := strings.Repeat("b", 32)
+	t1 := "{{LLMG_" + ns + "_0001}}"
+	t2 := "{{LLMG_" + ns + "_0002}}"
+	masked := t1 + " " + t2
+	findings := []llmguard.Finding{
+		{Entity: llmguard.EntityEmail, Start: 22, End: 28},
+		{Entity: llmguard.EntityPerson, Start: 0, End: 21},
+	}
+	inferred, err := inferPlaceholderMap(input, masked, findings)
+	if err != nil {
+		t.Fatalf("inferPlaceholderMap: %v", err)
+	}
+	if inferred[t1] != "Иван Петров" {
+		t.Fatalf("T1 = %q, want person span by start order", inferred[t1])
+	}
+	if inferred[t2] != "a@b.co" {
+		t.Fatalf("T2 = %q, want email span by start order", inferred[t2])
+	}
+}
+
 func TestExpectedRecipeRestore_WhenIdentityMasked_ExpectOriginalInput(t *testing.T) {
 	t.Parallel()
 	input := "Contact a@b.co"
 	masked := "Contact {{LLMG_0123456789abcdef0123456789abcdef_0001}}"
-	inferred, err := inferPlaceholderMap(input, masked)
+	inferred, err := inferPlaceholderMap(input, masked, contactEmailFindings())
 	if err != nil {
 		t.Fatalf("inferPlaceholderMap: %v", err)
 	}
@@ -36,7 +90,7 @@ func TestExpectedRecipeRestore_WhenMutateRecipe_ExpectMutatedTokenNotWrapped(t *
 	t.Parallel()
 	input := "Contact a@b.co"
 	masked := "Contact {{LLMG_0123456789abcdef0123456789abcdef_0001}}"
-	inferred, err := inferPlaceholderMap(input, masked)
+	inferred, err := inferPlaceholderMap(input, masked, contactEmailFindings())
 	if err != nil {
 		t.Fatalf("inferPlaceholderMap: %v", err)
 	}
@@ -57,7 +111,7 @@ func TestExpectedRecipeRestore_WhenJunkWrapped_ExpectNotEqualToExpected(t *testi
 	t.Parallel()
 	input := "Contact a@b.co"
 	masked := "Contact {{LLMG_0123456789abcdef0123456789abcdef_0001}}"
-	inferred, err := inferPlaceholderMap(input, masked)
+	inferred, err := inferPlaceholderMap(input, masked, contactEmailFindings())
 	if err != nil {
 		t.Fatalf("inferPlaceholderMap: %v", err)
 	}

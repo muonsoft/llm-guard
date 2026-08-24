@@ -50,7 +50,17 @@ func contractProfileHasNumericBounds(profile ProfileThreshold) bool {
 	if profile.MaxFP != nil || profile.MaxFN != nil || profile.MinPrecision != nil || profile.MinRecall != nil {
 		return true
 	}
-	return len(profile.Entities) > 0 || len(profile.Sources) > 0
+	for _, bounds := range profile.Entities {
+		if !numericBoundsEmpty(bounds) {
+			return true
+		}
+	}
+	for _, bounds := range profile.Sources {
+		if !numericBoundsEmpty(bounds) {
+			return true
+		}
+	}
+	return false
 }
 
 func lifecycleProfileHasNumericBounds(profile ProfileThreshold) bool {

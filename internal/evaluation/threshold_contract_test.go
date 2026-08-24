@@ -2,6 +2,26 @@ package evaluation
 
 import "testing"
 
+func TestApplyContractThresholds_WhenEmptyEntityBoundsInMemory_ExpectZeroRegression(t *testing.T) {
+	t.Parallel()
+	report := ContractReport{
+		Summary: SummaryMetrics{TP: 1, FP: 1, FN: 0},
+		Status:  StatusPass,
+	}
+	ApplyContractThresholds(&report, ThresholdSet{
+		ID: "gate",
+		Profiles: map[string]ProfileThreshold{
+			"contract": {
+				Status:   "gate",
+				Entities: map[string]NumericBounds{"EMAIL": {}},
+			},
+		},
+	})
+	if report.Status != StatusFail {
+		t.Fatalf("status = %q, want fail on FP with empty entity bounds", report.Status)
+	}
+}
+
 func TestApplyContractThresholds_WhenMaxFPAllowsRegression_ExpectPass(t *testing.T) {
 	t.Parallel()
 	maxFP := 5.0

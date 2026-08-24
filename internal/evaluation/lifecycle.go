@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"regexp"
+	"sort"
 	"strings"
 
 	muerrors "github.com/muonsoft/errors"
@@ -170,7 +171,7 @@ func evaluateLifecycleCase(ctx context.Context, guard *llmguard.Guard, rec Suite
 		if containsProtectedSubstrings(rec, result.Text) {
 			return fail(LifecycleOutcomeMutation, "masked text contains protected original substring")
 		}
-		inferred, alignErr := inferPlaceholderMap(rec.Input, result.Text)
+		inferred, alignErr := inferPlaceholderMap(rec.Input, result.Text, result.Findings)
 		if alignErr != nil {
 			return fail(LifecycleOutcomeError, alignErr.Error())
 		}
@@ -241,63 +242,46 @@ func errStrContainsSecret(err error, rec SuiteRecord) bool {
 	return false
 }
 
-// inferPlaceholderMap aligns masked text with original input and returns
-// placeholder token → original substring mappings.
-func inferPlaceholderMap(input, masked string) (map[string]string, error) {
-	locs := placeholderPattern.FindAllStringIndex(masked, -1)
-	if len(locs) == 0 {
-		if masked != input {
-			return nil, errPlaceholderAlignment
+// inferPlaceholderMap aligns masked text with original input using finding spans
+// and returns placeholder token → original substring mappings.
+func inferPlaceholderMap(input, masked string, findings []llmguard.Finding) (map[string]string, error) {
+	placeholders := placeholderPattern.FindAllString(masked, -1)
+
+	sorted := append([]llmguard.Finding(nil), findings...)
+	sort.Slice(sorted, func(i, j int) bool {
+		if sorted[i].Start != sorted[j].Start {
+			return sorted[i].Start < sorted[j].Start
 		}
+		return sorted[i].End < sorted[j].End
+	})
+
+	if len(placeholders) != len(sorted) {
+		if len(placeholders) == 0 && len(sorted) == 0 && masked == input {
+			return map[string]string{}, nil
+		}
+		return nil, errPlaceholderAlignment
+	}
+	if len(placeholders) == 0 {
 		return map[string]string{}, nil
 	}
 
-	result := make(map[string]string, len(locs))
-	inputPos := 0
-	maskedPos := 0
-	for i, loc := range locs {
-		plaintext := masked[maskedPos:loc[0]]
-		if plaintext != "" {
-			if inputPos+len(plaintext) > len(input) || input[inputPos:inputPos+len(plaintext)] != plaintext {
-				return nil, errPlaceholderAlignment
-			}
-			inputPos += len(plaintext)
-		}
-
-		token := masked[loc[0]:loc[1]]
-		var nextPlaintext string
-		if i+1 < len(locs) {
-			nextPlaintext = masked[loc[1]:locs[i+1][0]]
-		} else {
-			nextPlaintext = masked[loc[1]:]
-		}
-
-		var valueEnd int
-		if nextPlaintext != "" {
-			idx := strings.Index(input[inputPos:], nextPlaintext)
-			if idx < 0 {
-				return nil, errPlaceholderAlignment
-			}
-			valueEnd = inputPos + idx
-		} else {
-			valueEnd = len(input)
-		}
-		result[token] = input[inputPos:valueEnd]
-		inputPos = valueEnd
-		maskedPos = loc[1]
+	var reconstructed strings.Builder
+	pos := 0
+	for i, f := range sorted {
+		reconstructed.WriteString(input[pos:f.Start])
+		reconstructed.WriteString(placeholders[i])
+		pos = f.End
 	}
-
-	if maskedPos < len(masked) {
-		trailing := masked[maskedPos:]
-		if inputPos+len(trailing) > len(input) || input[inputPos:] != trailing {
-			return nil, errPlaceholderAlignment
-		}
-		inputPos += len(trailing)
-	}
-	if inputPos != len(input) {
+	reconstructed.WriteString(input[pos:])
+	if reconstructed.String() != masked {
 		return nil, errPlaceholderAlignment
 	}
-	return result, nil
+
+	out := make(map[string]string, len(placeholders))
+	for i, f := range sorted {
+		out[placeholders[i]] = input[f.Start:f.End]
+	}
+	return out, nil
 }
 
 // expectedRecipeRestore substitutes known placeholders in recipeText using inferred

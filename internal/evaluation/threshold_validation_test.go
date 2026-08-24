@@ -5,6 +5,48 @@ import (
 	"testing"
 )
 
+func TestValidateThresholdSet_WhenContractEmptyEntityBounds_ExpectRejection(t *testing.T) {
+	t.Parallel()
+	set := ThresholdSet{
+		SchemaVersion: 1,
+		ID:            "bad",
+		Profiles: map[string]ProfileThreshold{
+			"contract": {
+				Status:   "gate",
+				Entities: map[string]NumericBounds{"EMAIL": {}},
+			},
+		},
+	}
+	err := validateThresholdSet(set)
+	if err == nil {
+		t.Fatal("expected contract entities EMAIL empty bounds to be rejected")
+	}
+	if !containsAll(err.Error(), "contract", "entities[EMAIL]", "no bound fields") {
+		t.Fatalf("error = %q", err.Error())
+	}
+}
+
+func TestValidateThresholdSet_WhenContractEmptySourceBounds_ExpectRejection(t *testing.T) {
+	t.Parallel()
+	set := ThresholdSet{
+		SchemaVersion: 1,
+		ID:            "bad",
+		Profiles: map[string]ProfileThreshold{
+			"contract": {
+				Status:  "gate",
+				Sources: map[string]NumericBounds{"src": {}},
+			},
+		},
+	}
+	err := validateThresholdSet(set)
+	if err == nil {
+		t.Fatal("expected contract sources src empty bounds to be rejected")
+	}
+	if !containsAll(err.Error(), "contract", "sources[src]", "no bound fields") {
+		t.Fatalf("error = %q", err.Error())
+	}
+}
+
 func TestValidateThresholdSet_WhenContractMinByteCoverage_ExpectRejection(t *testing.T) {
 	t.Parallel()
 	cov := 0.5

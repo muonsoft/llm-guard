@@ -67,6 +67,11 @@ type NumericBounds struct {
 	MaxLeakedSensitiveBytes *float64 `json:"max_leaked_sensitive_bytes,omitempty"`
 }
 
+func numericBoundsEmpty(b NumericBounds) bool {
+	return b.MaxFP == nil && b.MaxFN == nil && b.MinPrecision == nil &&
+		b.MinRecall == nil && b.MinByteCoverage == nil && b.MaxLeakedSensitiveBytes == nil
+}
+
 // LoadThresholdSet reads and validates a threshold JSON file.
 func LoadThresholdSet(path string) (ThresholdSet, error) {
 	data, err := os.ReadFile(path)
@@ -182,6 +187,9 @@ func validateNestedBounds(profileName, section, key string, bounds NumericBounds
 	allowed, ok := profileTopLevelBoundKeys[profileName]
 	if !ok {
 		return fmt.Errorf("thresholds: unknown profile %q", profileName)
+	}
+	if numericBoundsEmpty(bounds) {
+		return fmt.Errorf("thresholds profile %q %s[%s]: has no bound fields", profileName, section, key)
 	}
 	if profileName == "lifecycle" {
 		return fmt.Errorf("thresholds profile %q %s[%q]: nested bounds are not supported", profileName, section, key)
