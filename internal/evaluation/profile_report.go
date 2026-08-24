@@ -39,17 +39,27 @@ type ContractFailureDiagnostic struct {
 
 // ContractReport is the contract profile evaluation output for a suite run.
 type ContractReport struct {
-	Profile        string
-	SuiteID        string
-	MappingVersion string
-	ThresholdID    string
-	SourceIDs      []string
-	Cases          int
-	Entities       []EntityMetrics
-	Summary        SummaryMetrics
-	Diagnostics    ContractDiagnostics
-	Status         string
+	Profile         string
+	SuiteID         string
+	MappingVersion  string
+	ThresholdID     string
+	SourceIDs       []string
+	Cases           int
+	Entities        []EntityMetrics
+	Summary         SummaryMetrics
+	Diagnostics     ContractDiagnostics
+	Status          string
+	sourceSummaries sourceContractSummaries
 }
+
+// SourceContractSummary holds per-source contract counters for threshold checks.
+type SourceContractSummary struct {
+	TP int
+	FP int
+	FN int
+}
+
+type sourceContractSummaries map[string]SourceContractSummary
 
 // HasContractRegression returns true when any in-scope FP or FN occurred.
 func (r ContractReport) HasContractRegression() bool {
@@ -87,17 +97,29 @@ type ExposureSummary struct {
 
 // ExposureReport is the exposure profile evaluation output for a suite run.
 type ExposureReport struct {
-	Profile        string
-	SuiteID        string
-	MappingVersion string
-	ThresholdID    string
-	SourceIDs      []string
-	Cases          int
-	ByLabel        []LabelExposureMetrics
-	Ignored        []IgnoredCount
-	Summary        ExposureSummary
-	Status         string
+	Profile         string
+	SuiteID         string
+	MappingVersion  string
+	ThresholdID     string
+	SourceIDs       []string
+	Cases           int
+	ByLabel         []LabelExposureMetrics
+	Ignored         []IgnoredCount
+	Summary         ExposureSummary
+	Status          string
+	sourceSummaries sourceExposureSummaries
 }
+
+// SourceExposureSummary holds per-source exposure byte metrics for threshold checks.
+type SourceExposureSummary struct {
+	SensitiveBytes        int
+	CoveredSensitiveBytes int
+	LeakedSensitiveBytes  int
+	OvermatchedBytes      int
+	ByteCoverage          float64
+}
+
+type sourceExposureSummaries map[string]SourceExposureSummary
 
 func entityScopeOrder(scope []llmguard.EntityType) []llmguard.EntityType {
 	out := make([]llmguard.EntityType, len(scope))

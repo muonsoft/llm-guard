@@ -12,11 +12,15 @@ func ApplyContractThresholds(report *ContractReport, set ThresholdSet) {
 		report.Status = StatusDiagnostic
 		return
 	}
-	if report.HasContractRegression() {
-		report.Status = StatusFail
+	if contractProfileHasNumericBounds(profile) {
+		if violatesContractBounds(report, profile) {
+			report.Status = StatusFail
+		} else {
+			report.Status = StatusPass
+		}
 		return
 	}
-	if violatesContractBounds(report, profile) {
+	if report.HasContractRegression() {
 		report.Status = StatusFail
 		return
 	}
@@ -42,6 +46,17 @@ func ApplyExposureThresholds(report *ExposureReport, set ThresholdSet) {
 	report.Status = StatusPass
 }
 
+func contractProfileHasNumericBounds(profile ProfileThreshold) bool {
+	if profile.MaxFP != nil || profile.MaxFN != nil || profile.MinPrecision != nil || profile.MinRecall != nil {
+		return true
+	}
+	return len(profile.Entities) > 0 || len(profile.Sources) > 0
+}
+
+func lifecycleProfileHasNumericBounds(profile ProfileThreshold) bool {
+	return profile.MaxFP != nil || profile.MaxFN != nil
+}
+
 func violatesContractBounds(report *ContractReport, profile ProfileThreshold) bool {
 	if profile.MaxFP != nil && float64(report.Summary.FP) > *profile.MaxFP {
 		return true
@@ -49,11 +64,32 @@ func violatesContractBounds(report *ContractReport, profile ProfileThreshold) bo
 	if profile.MaxFN != nil && float64(report.Summary.FN) > *profile.MaxFN {
 		return true
 	}
+	aggPrecision := ratio(report.Summary.TP, report.Summary.TP+report.Summary.FP)
+	if profile.MinPrecision != nil && aggPrecision < *profile.MinPrecision {
+		return true
+	}
+	aggRecall := ratio(report.Summary.TP, report.Summary.TP+report.Summary.FN)
+	if profile.MinRecall != nil && aggRecall < *profile.MinRecall {
+		return true
+	}
 	for _, row := range report.Entities {
 		if bounds, ok := profile.Entities[string(row.Entity)]; ok {
 			if violatesEntityContractBounds(row, bounds) {
 				return true
 			}
+		}
+	}
+	for sourceID, bounds := range profile.Sources {
+		summary := report.sourceSummaries[sourceID]
+		row := EntityMetrics{
+			TP:        summary.TP,
+			FP:        summary.FP,
+			FN:        summary.FN,
+			Precision: ratio(summary.TP, summary.TP+summary.FP),
+			Recall:    ratio(summary.TP, summary.TP+summary.FN),
+		}
+		if violatesEntityContractBounds(row, bounds) {
+			return true
 		}
 	}
 	return false
@@ -82,6 +118,15 @@ func violatesExposureBounds(report *ExposureReport, profile ProfileThreshold) bo
 	if profile.MinByteCoverage != nil && report.Summary.ByteCoverage < *profile.MinByteCoverage {
 		return true
 	}
+	for sourceID, bounds := range profile.Sources {
+		summary := report.sourceSummaries[sourceID]
+		if bounds.MaxLeakedSensitiveBytes != nil && float64(summary.LeakedSensitiveBytes) > *bounds.MaxLeakedSensitiveBytes {
+			return true
+		}
+		if bounds.MinByteCoverage != nil && summary.ByteCoverage < *bounds.MinByteCoverage {
+			return true
+		}
+	}
 	return false
 }
 
@@ -97,11 +142,15 @@ func ApplyLifecycleThresholds(report *LifecycleReport, set ThresholdSet) {
 		report.Status = StatusDiagnostic
 		return
 	}
-	if report.HasLifecycleRegression() {
-		report.Status = StatusFail
+	if lifecycleProfileHasNumericBounds(profile) {
+		if violatesLifecycleBounds(report, profile) {
+			report.Status = StatusFail
+		} else {
+			report.Status = StatusPass
+		}
 		return
 	}
-	if violatesLifecycleBounds(report, profile) {
+	if report.HasLifecycleRegression() {
 		report.Status = StatusFail
 		return
 	}
@@ -124,7 +173,10 @@ func LifecycleFailsGate(report LifecycleReport, set ThresholdSet) bool {
 	if !ok || profile.Status != "gate" {
 		return false
 	}
-	return report.HasLifecycleRegression() || violatesLifecycleBounds(&report, profile)
+	if lifecycleProfileHasNumericBounds(profile) {
+		return violatesLifecycleBounds(&report, profile)
+	}
+	return report.HasLifecycleRegression()
 }
 
 // ExposureFailsGate returns true when exposure thresholds with gate status are violated.

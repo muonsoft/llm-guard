@@ -35,13 +35,42 @@ jobs:
             -cache ./.cache/llm-guard/evaluation
 
       - name: Run exposure profile
+        id: exposure
         run: |
-          go run ./cmd/llmguard-eval \
-            -suite ./.cache/llm-guard/evaluation/normalized/redmadrobot-pii-benchmark.jsonl \
-            -profile exposure \
-            -format json \
-            -thresholds ./testdata/evaluation/thresholds/prefilter-v1.json \
-            > redmadrobot-exposure.json
+          CMD='go run ./cmd/llmguard-eval -suite ./.cache/llm-guard/evaluation/normalized/redmadrobot-pii-benchmark.jsonl -profile exposure -format json -thresholds ./testdata/evaluation/thresholds/prefilter-v1.json'
+          echo "command=$CMD" >> "$GITHUB_OUTPUT"
+          eval "$CMD" > redmadrobot-exposure-raw.json
+
+      - name: Wrap exposure report with provenance envelope
+        env:
+          EVAL_COMMAND: ${{ steps.exposure.outputs.command }}
+        run: |
+          GO_VERSION="$(go env GOVERSION)"
+          OS_ARCH="$(go env GOOS)/$(go env GOARCH)"
+          MANIFEST='./testdata/evaluation/manifests/redmadrobot-pii-benchmark-v1.json'
+          jq -n \
+            --arg measured_commit "${{ github.sha }}" \
+            --arg go_version "$GO_VERSION" \
+            --arg os_arch "$OS_ARCH" \
+            --arg mapping_version "redmadrobot-v1" \
+            --arg threshold_id "prefilter-v1" \
+            --arg command "$EVAL_COMMAND" \
+            --slurpfile manifest "$MANIFEST" \
+            --slurpfile report redmadrobot-exposure-raw.json \
+            '{
+              measured_commit: $measured_commit,
+              environment: {go_version: $go_version, os_arch: $os_arch},
+              manifest: {
+                canonical_url: $manifest[0].canonical_url,
+                revision: $manifest[0].revision,
+                digest_sha256: $manifest[0].digest_sha256,
+                license: $manifest[0].license
+              },
+              mapping_version: $mapping_version,
+              threshold_id: $threshold_id,
+              command: $command,
+              report: $report[0]
+            }' > redmadrobot-exposure.json
 
       - name: Upload exposure report
         uses: actions/upload-artifact@v4

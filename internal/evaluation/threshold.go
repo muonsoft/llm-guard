@@ -117,6 +117,9 @@ func validateProfileThreshold(name string, profile ProfileThreshold) error {
 	if err := validateNumericBoundsKeys(profile, name); err != nil {
 		return err
 	}
+	if name == "lifecycle" && len(profile.Sources) > 0 {
+		return fmt.Errorf("thresholds profile %q: lifecycle sources bounds are not supported", name)
+	}
 	for entity, bounds := range profile.Entities {
 		if strings.TrimSpace(entity) == "" {
 			return fmt.Errorf("thresholds profile %q: entities contains empty key", name)

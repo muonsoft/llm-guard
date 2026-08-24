@@ -16,6 +16,7 @@ func EvaluateContract(ctx context.Context, guard *llmguard.Guard, suite Suite) (
 	}
 	var overlapPairs int
 	var failures []ContractFailureDiagnostic
+	sourceSummaries := make(sourceContractSummaries)
 
 	for _, rec := range suite.Records {
 		resolved, err := DetectResolve(ctx, guard, rec.Input)
@@ -28,6 +29,7 @@ func EvaluateContract(ctx context.Context, guard *llmguard.Guard, suite Suite) (
 		overlapPairs += countOverlappingPairs(goldByEntity, predictedByEntity)
 		failures = append(failures, contractFailureDiagnostics(rec, goldByEntity, predictedByEntity, recScope)...)
 
+		var recTP, recFP, recFN int
 		for _, entity := range scope {
 			if !entityInScope(entity, recScope) {
 				continue
@@ -45,15 +47,24 @@ func EvaluateContract(ctx context.Context, guard *llmguard.Guard, suite Suite) (
 			acc.tp += tp
 			acc.fp += fp
 			acc.fn += fn
+			recTP += tp
+			recFP += fp
+			recFN += fn
 		}
+		src := sourceSummaries[rec.SourceID]
+		src.TP += recTP
+		src.FP += recFP
+		src.FN += recFN
+		sourceSummaries[rec.SourceID] = src
 	}
 
 	report := ContractReport{
-		Profile:        string(ProfileContract),
-		SuiteID:        suite.SuiteID,
-		MappingVersion: suite.MappingVersion,
-		SourceIDs:      append([]string(nil), suite.SourceIDs...),
-		Cases:          len(suite.Records),
+		Profile:         string(ProfileContract),
+		SuiteID:         suite.SuiteID,
+		MappingVersion:  suite.MappingVersion,
+		SourceIDs:       append([]string(nil), suite.SourceIDs...),
+		Cases:           len(suite.Records),
+		sourceSummaries: sourceSummaries,
 		Diagnostics: ContractDiagnostics{
 			OverlappingPairs: overlapPairs,
 			Failures:         failures,
@@ -146,7 +157,19 @@ func contractFailureDiagnostics(
 	}
 
 	var failures []ContractFailureDiagnostic
-	for entity, goldSpans := range goldByEntity {
+	entities := make(map[llmguard.EntityType]struct{})
+	for entity := range goldByEntity {
+		if entityInScope(entity, recScope) {
+			entities[entity] = struct{}{}
+		}
+	}
+	for entity := range predictedByEntity {
+		if entityInScope(entity, recScope) {
+			entities[entity] = struct{}{}
+		}
+	}
+	for entity := range entities {
+		goldSpans := goldByEntity[entity]
 		predicted := predictedByEntity[entity]
 		goldSet := make(map[spanKey]struct{}, len(goldSpans))
 		for _, g := range goldSpans {

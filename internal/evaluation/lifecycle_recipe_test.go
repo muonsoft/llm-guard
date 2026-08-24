@@ -33,3 +33,20 @@ func TestApplyResponseRecipe_WhenDeletePlaceholder_ExpectSingleRemoval(t *testin
 		t.Fatalf("expected exactly one placeholder, got %q", out)
 	}
 }
+
+func TestPreservesRecipePlaintext_WhenEmptyRestored_ExpectFalse(t *testing.T) {
+	t.Parallel()
+	recipe := "Contact {{LLMG_0123456789abcdef0123456789abcdef_0001}} please"
+	if preservesRecipePlaintext(recipe, "") {
+		t.Fatal("empty restored must not preserve recipe plaintext")
+	}
+}
+
+func TestPreservesRecipePlaintext_WhenSequentialFragments_ExpectTrue(t *testing.T) {
+	t.Parallel()
+	recipe := "Contact {{LLMG_0123456789abcdef0123456789abcdef_0001}} please"
+	restored := "Contact restored-token please"
+	if !preservesRecipePlaintext(recipe, restored) {
+		t.Fatal("expected sequential plaintext fragments to match")
+	}
+}

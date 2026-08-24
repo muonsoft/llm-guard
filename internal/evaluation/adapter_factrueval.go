@@ -46,10 +46,12 @@ func (a FactRuEvalAdapter) AdaptDocument(split, stem, text string, tokensPath, s
 
 	var annotations []SuiteAnnotation
 	for _, obj := range objects {
-		if obj.objType != "Person" {
-			continue
+		switch obj.objType {
+		case "Person":
+			annotations = append(annotations, mapFactRuEvalPersonObject(a.Policy, obj, spansByID, text)...)
+		case "Org", "LocOrg", "Location":
+			annotations = append(annotations, mapFactRuEvalExposureObject(a.Policy, obj, spansByID, text)...)
 		}
-		annotations = append(annotations, mapFactRuEvalPersonObject(a.Policy, obj, spansByID, text)...)
 	}
 	return buildSuiteRecord(factRuEvalSourceID, recordID, a.Policy.Version, text, annotations), nil
 }
@@ -84,6 +86,26 @@ func mapFactRuEvalPersonObject(policy MappingPolicy, obj factRuEvalObject, spans
 	if !personMentionContiguous(text, sourceSpans) {
 		return ApplyMapping(policy, sourceSpans, text)
 	}
+	return ApplyMapping(policy, sourceSpans, text)
+}
+
+func mapFactRuEvalExposureObject(policy MappingPolicy, obj factRuEvalObject, spansByID map[int]factRuEvalSpan, text string) []SuiteAnnotation {
+	var sourceSpans []SourceLabelSpan
+	for _, id := range obj.spanIDs {
+		span, ok := spansByID[id]
+		if !ok {
+			continue
+		}
+		start, end, ok := RuneIntervalToUTF8(text, span.charStart, span.charStart+span.charLength)
+		if !ok {
+			continue
+		}
+		sourceSpans = append(sourceSpans, SourceLabelSpan{Label: obj.objType, Start: start, End: end})
+	}
+	if len(sourceSpans) == 0 {
+		return nil
+	}
+	sortSourceLabelSpans(sourceSpans)
 	return ApplyMapping(policy, sourceSpans, text)
 }
 

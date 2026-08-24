@@ -139,3 +139,43 @@ func TestEvaluateContract_WhenZeroDenominator_ExpectZeroRates(t *testing.T) {
 	assert.Equal(t, 0.0, row.FPR)
 	assert.Equal(t, 0.0, row.FNR)
 }
+
+func TestEvaluateContract_WhenPredictedOnlyEntity_ExpectFPDiagnostic(t *testing.T) {
+	t.Parallel()
+
+	suite := evaluation.Suite{
+		SuiteID:        "fp-only",
+		MappingVersion: "v1",
+		SourceIDs:      []string{"s"},
+		Scope:          []llmguard.EntityType{llmguard.EntityEmail},
+		Records: []evaluation.SuiteRecord{{
+			SchemaVersion:  evaluation.SuiteSchemaVersion,
+			SuiteID:        "fp-only",
+			SourceID:       "s",
+			SourceRecordID: "r1",
+			MappingVersion: "v1",
+			Input:          "Contact a@b.co",
+			InputSHA256:    "ab81dd8ef48b30ede16d7e2655e7b0019937da4d05a4e697dba6c97e5e41196f",
+			Annotations:    nil,
+		}},
+	}
+
+	guard, err := evaluation.NewMVPGuard()
+	require.NoError(t, err)
+
+	report, err := evaluation.EvaluateContract(context.Background(), guard, suite)
+	require.NoError(t, err)
+	assert.True(t, report.HasContractRegression())
+	require.NotEmpty(t, report.Diagnostics.Failures)
+	fp := report.Diagnostics.Failures[0]
+	assert.Equal(t, "fp", fp.Kind)
+	assert.Equal(t, "r1", fp.SourceRecordID)
+	assert.NotNil(t, fp.PredictedStart)
+	assert.NotNil(t, fp.PredictedEnd)
+
+	markdown := evaluation.FormatContractMarkdown(report)
+	jsonOut, err := evaluation.FormatContractJSON(report)
+	require.NoError(t, err)
+	assert.NotContains(t, markdown, "a@b.co")
+	assert.NotContains(t, string(jsonOut), "a@b.co")
+}

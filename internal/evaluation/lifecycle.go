@@ -54,6 +54,8 @@ func (r LifecycleReport) HasLifecycleRegression() bool {
 
 var placeholderPattern = regexp.MustCompile(`\{\{LLMG_[0-9a-f]{32}_\d+\}\}`)
 
+const collisionFakeToken = "{{LLMG_0123456789abcdef0123456789abcdef_9999}}"
+
 // EvaluateLifecycle runs mask/block/restore checks on normalized suite cases.
 func EvaluateLifecycle(ctx context.Context, guard *llmguard.Guard, suite Suite) (LifecycleReport, error) {
 	report := LifecycleReport{
@@ -177,8 +179,24 @@ func evaluateLifecycleCase(ctx context.Context, guard *llmguard.Guard, rec Suite
 			}
 			return nil
 		case "mutate_placeholder", "delete_placeholder", "collision":
+			if response == result.Text {
+				return fail(LifecycleOutcomeError, "recipe produced no placeholder change")
+			}
 			if restored == rec.Input {
 				return fail(LifecycleOutcomeMutation, "expected mutation/miss outcome")
+			}
+			if !preservesRecipePlaintext(response, restored) {
+				return fail(LifecycleOutcomeMutation, "restored text missing recipe plaintext fragments")
+			}
+			switch lc.ResponseRecipe {
+			case "mutate_placeholder":
+				if !placeholderPattern.MatchString(restored) {
+					return fail(LifecycleOutcomeMutation, "restored text missing placeholder after mutation")
+				}
+			case "collision":
+				if !strings.Contains(restored, collisionFakeToken) {
+					return fail(LifecycleOutcomeMutation, "restored text missing collision fake token")
+				}
 			}
 			return nil
 		default:
@@ -222,6 +240,24 @@ func errStrContainsSecret(err error, rec SuiteRecord) bool {
 	return false
 }
 
+// preservesRecipePlaintext reports whether every non-empty plaintext fragment of recipe
+// text appears in order within restored (split on placeholder tokens).
+func preservesRecipePlaintext(recipeText, restored string) bool {
+	parts := placeholderPattern.Split(recipeText, -1)
+	pos := 0
+	for _, part := range parts {
+		if part == "" {
+			continue
+		}
+		idx := strings.Index(restored[pos:], part)
+		if idx < 0 {
+			return false
+		}
+		pos += idx + len(part)
+	}
+	return true
+}
+
 func applyResponseRecipe(masked, recipe string) string {
 	switch recipe {
 	case "", "identity":
@@ -255,8 +291,7 @@ func applyResponseRecipe(masked, recipe string) string {
 		}
 		return masked[:loc[0]] + masked[loc[1]:]
 	case "collision":
-		fake := "{{LLMG_0123456789abcdef0123456789abcdef_9999}}"
-		return fake + " " + masked
+		return collisionFakeToken + " " + masked
 	default:
 		return masked
 	}

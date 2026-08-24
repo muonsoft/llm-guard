@@ -23,6 +23,7 @@ func EvaluateExposure(ctx context.Context, guard *llmguard.Guard, suite Suite) (
 	byLabel := make(map[labelExposureKey]*LabelExposureMetrics)
 	ignored := make(map[ignoredKey]int)
 	var summary ExposureSummary
+	sourceSummaries := make(sourceExposureSummaries)
 
 	for _, rec := range suite.Records {
 		resolved, err := DetectResolve(ctx, guard, rec.Input)
@@ -55,18 +56,30 @@ func EvaluateExposure(ctx context.Context, guard *llmguard.Guard, suite Suite) (
 		for key, count := range caseMetrics.ignored {
 			ignored[key] += count
 		}
+		src := sourceSummaries[rec.SourceID]
+		src.SensitiveBytes += caseMetrics.sensitiveBytes
+		src.CoveredSensitiveBytes += caseMetrics.coveredSensitive
+		src.LeakedSensitiveBytes += caseMetrics.leakedSensitive
+		src.OvermatchedBytes += caseMetrics.overmatched
+		sourceSummaries[rec.SourceID] = src
+	}
+
+	for id, src := range sourceSummaries {
+		src.ByteCoverage = ratio(src.CoveredSensitiveBytes, src.SensitiveBytes)
+		sourceSummaries[id] = src
 	}
 
 	summary.ByteCoverage = ratio(summary.CoveredSensitiveBytes, summary.SensitiveBytes)
 
 	report := ExposureReport{
-		Profile:        string(ProfileExposure),
-		SuiteID:        suite.SuiteID,
-		MappingVersion: suite.MappingVersion,
-		SourceIDs:      append([]string(nil), suite.SourceIDs...),
-		Cases:          len(suite.Records),
-		Summary:        summary,
-		Status:         StatusDiagnostic,
+		Profile:         string(ProfileExposure),
+		SuiteID:         suite.SuiteID,
+		MappingVersion:  suite.MappingVersion,
+		SourceIDs:       append([]string(nil), suite.SourceIDs...),
+		Cases:           len(suite.Records),
+		Summary:         summary,
+		Status:          StatusDiagnostic,
+		sourceSummaries: sourceSummaries,
 	}
 	report.ByLabel = sortedLabelMetrics(byLabel)
 	report.Ignored = sortedIgnoredCounts(ignored)
