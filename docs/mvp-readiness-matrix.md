@@ -25,6 +25,8 @@ OSS stabilization. Tag/release publication is tracked separately in
 | 17 | Fuzz tests mask/restore/resolver | met | `fuzz_test.go`; `./scripts/release-check.sh fuzz` |
 | 18 | Evaluation corpus | met | `testdata/evaluation/cases.jsonl`, `cmd/llmguard-eval` |
 | 19 | Per-entity metrics in evaluation | met | evaluation report entity table |
+| 29 | Offline evaluation gates (v1 + generated smoke) | met | CI `evaluation` + `evaluation-smoke`; `./scripts/release-check.sh` |
+| 30 | External diagnostic baseline (RedMadRobot) | met (diagnostic) | [evaluation/external-baseline.md](evaluation/external-baseline.md); weekly `evaluation-external.yml` |
 | 20 | Natasha subset documented | met | [natasha-license-inventory.md](natasha-license-inventory.md) |
 | 21 | Python Natasha reference-only | met | inventory decision rows; no embedded dicts |
 | 22 | Dependency/dictionary licenses verified | met | [dependency-license-inventory.md](dependency-license-inventory.md), `./scripts/release-check.sh license` |
@@ -37,6 +39,12 @@ OSS stabilization. Tag/release publication is tracked separately in
 
 ## Release boundary
 
+- **Offline gates (mandatory):** `go test ./...`, schema v1 corpus, generated
+  contract/lifecycle smoke — must be green for release dry-run.
+- **External evidence (diagnostic):** RedMadRobot exposure/contract aggregates
+  in [evaluation/external-baseline.md](evaluation/external-baseline.md); refresh
+  with `./scripts/release-check.sh evidence` when updating baseline at a release
+  commit. Staleness during development does not block default dry-run.
 - Repository readiness for `v0.1.0`: **yes** when `./scripts/release-check.sh` is green.
 - Published `v0.1.0` tag/release exists: **no** until manual steps in
   [release-checklist.md](release-checklist.md).

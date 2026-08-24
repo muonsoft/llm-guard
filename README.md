@@ -1,6 +1,10 @@
 # llm-guard
 
-Lightweight open-source **LLM Guard for Go** — локальное обнаружение PII и секретов, обратимая маскировка и восстановление текста в LLM-пайплайнах.
+Lightweight open-source **LLM Guard for Go** — локальный **precision-oriented
+prefilter**: обнаружение PII и секретов в документированных поддерживаемых
+формах, обратимая маскировка и восстановление текста в LLM-пайплайнах.
+Снижает риск утечки для supported scope, но **не заменяет** high-recall DLP,
+generic NER или domain-specific security review.
 
 **Статус:** MVP **готов к `v0.1.0`** — полный built-in detector pack, immutable allow/mask/block policy, deterministic resolver, reversible masking/restore, framework-neutral safe observability (Noop by default), offline evaluation runner, benchmarks, OSS policies и reproducible release dry-run. Тег `v0.1.0` и GitHub release **ещё не опубликованы**; см. [docs/release-checklist.md](docs/release-checklist.md).
 
@@ -29,7 +33,10 @@ App → Guard (mask) → LLM → Guard (restore) → App
 | [docs/light_llm_guard_go_mvp_plan.md](docs/light_llm_guard_go_mvp_plan.md) | Черновик MVP-плана |
 | [docs/milestones/](docs/milestones/) | Milestone scope, status dashboard и orchestration runbook |
 | [openspec/](openspec/) | Spec-driven workflow (OpenSpec) |
-| [docs/evaluation-baseline.md](docs/evaluation-baseline.md) | Full-MVP evaluation corpus and reproduction command |
+| [docs/evaluation-baseline.md](docs/evaluation-baseline.md) | Schema v1 smoke corpus and reproduction command |
+| [docs/evaluation/suite-v2.md](docs/evaluation/suite-v2.md) | Suite schema v2, profiles, and metric formulas |
+| [docs/evaluation/sources.md](docs/evaluation/sources.md) | External source manifests, fetch/normalize, licenses |
+| [docs/evaluation/external-baseline.md](docs/evaluation/external-baseline.md) | RedMadRobot diagnostic prefilter baseline (safe aggregates) |
 | [docs/benchmark-baseline.md](docs/benchmark-baseline.md) | Representative Detect/Mask/Restore benchmarks (no SLO) |
 | [docs/m8-quality-benchmark-comparison.md](docs/m8-quality-benchmark-comparison.md) | M8 regression comparison vs M7 baselines |
 | [docs/compatibility-versioning.md](docs/compatibility-versioning.md) | Pre-1.0 SemVer, Go 1.26.2+ support |
@@ -220,6 +227,9 @@ See [docs/evaluation-baseline.md](docs/evaluation-baseline.md) and [docs/benchma
 
 Full list: [docs/known-limitations.md](docs/known-limitations.md). Highlights:
 
+- **Prefilter, not DLP** — reduces risk for documented supported forms; does not
+  guarantee detection of all PII (single names, city-only addresses,
+  checksum-invalid INN/SNILS, unknown secret shapes).
 - Conservative RU-first detectors; English and edge cases may be missed or partially supported.
 - Restore does not perform morphological agreement; LLM may mutate placeholders.
 - No zero-FN guarantee, prompt-injection protection, moderation, or persistent token storage.

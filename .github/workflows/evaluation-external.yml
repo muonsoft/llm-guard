@@ -1,0 +1,51 @@
+name: Evaluation external (RedMadRobot)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  redmadrobot-exposure:
+    name: RedMadRobot exposure diagnostic
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.2'
+          cache: true
+
+      - name: Fetch RedMadRobot benchmark
+        run: |
+          go run ./cmd/llmguard-eval-data -action fetch \
+            -manifest ./testdata/evaluation/manifests/redmadrobot-pii-benchmark-v1.json \
+            -cache ./.cache/llm-guard/evaluation
+
+      - name: Normalize suite
+        run: |
+          go run ./cmd/llmguard-eval-data -action normalize \
+            -manifest ./testdata/evaluation/manifests/redmadrobot-pii-benchmark-v1.json \
+            -mapping ./testdata/evaluation/mappings/redmadrobot-v1.json \
+            -cache ./.cache/llm-guard/evaluation
+
+      - name: Run exposure profile
+        run: |
+          go run ./cmd/llmguard-eval \
+            -suite ./.cache/llm-guard/evaluation/normalized/redmadrobot-pii-benchmark.jsonl \
+            -profile exposure \
+            -format json \
+            -thresholds ./testdata/evaluation/thresholds/prefilter-v1.json \
+            > redmadrobot-exposure.json
+
+      - name: Upload exposure report
+        uses: actions/upload-artifact@v4
+        with:
+          name: redmadrobot-exposure-${{ github.run_id }}
+          path: redmadrobot-exposure.json
+          retention-days: 30

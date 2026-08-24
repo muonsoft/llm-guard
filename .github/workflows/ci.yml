@@ -80,6 +80,33 @@ jobs:
             -format json \
             -fail-on-regression
 
+  evaluation-smoke:
+    name: generated evaluation smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.2'
+          cache: true
+
+      - name: Generated contract smoke
+        run: |
+          go run ./cmd/llmguard-eval \
+            -suite ./testdata/evaluation/generated/smoke.jsonl \
+            -profile contract \
+            -format json \
+            -fail-on-regression
+
+      - name: Generated lifecycle smoke
+        run: |
+          go run ./cmd/llmguard-eval \
+            -suite ./testdata/evaluation/generated/smoke.jsonl \
+            -profile lifecycle \
+            -format json \
+            -fail-on-regression
+
   fuzz:
     name: bounded fuzz smoke
     runs-on: ubuntu-latest

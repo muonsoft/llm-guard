@@ -1,9 +1,15 @@
 # Evaluation baseline (M7 release candidate)
 
-Representative full-MVP corpus at `testdata/evaluation/cases.jsonl`. This baseline
-documents the unified runner boundary; deeper family corpora remain authoritative
-for PERSON (`testdata/person/cases.jsonl`), ADDRESS (`testdata/address/cases.jsonl`),
-and secrets (`testdata/secrets/cases.jsonl`).
+Representative full-MVP corpus at `testdata/evaluation/cases.jsonl` (schema v1).
+This baseline documents the strict offline conformance gate; deeper family corpora
+remain authoritative for PERSON (`testdata/person/cases.jsonl`), ADDRESS
+(`testdata/address/cases.jsonl`), and secrets (`testdata/secrets/cases.jsonl`).
+
+For suite schema v2, external sources, and diagnostic holdout evidence, see:
+
+- [evaluation/suite-v2.md](evaluation/suite-v2.md) — v2 fields, profiles, formulas
+- [evaluation/sources.md](evaluation/sources.md) — manifests, fetch/normalize, licenses
+- [evaluation/external-baseline.md](evaluation/external-baseline.md) — RedMadRobot safe aggregates
 
 ## Reproduction command
 

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "id": "prefilter-v1",
+  "profiles": {
+    "contract": {
+      "status": "diagnostic"
+    },
+    "exposure": {
+      "status": "diagnostic"
+    },
+    "lifecycle": {
+      "status": "gate"
+    }
+  }
+}
