@@ -2,6 +2,7 @@ package evaluation
 
 import (
 	"context"
+	"math"
 	"sort"
 
 	"github.com/muonsoft/llm-guard"
@@ -217,7 +218,29 @@ func contractFailureDiagnostics(
 		if failures[i].Entity != failures[j].Entity {
 			return failures[i].Entity < failures[j].Entity
 		}
-		return failures[i].Kind < failures[j].Kind
+		if failures[i].Kind != failures[j].Kind {
+			return failures[i].Kind < failures[j].Kind
+		}
+		if gsI, gsJ := intPtrSortKey(failures[i].GoldStart), intPtrSortKey(failures[j].GoldStart); gsI != gsJ {
+			return gsI < gsJ
+		}
+		if geI, geJ := intPtrSortKey(failures[i].GoldEnd), intPtrSortKey(failures[j].GoldEnd); geI != geJ {
+			return geI < geJ
+		}
+		if psI, psJ := intPtrSortKey(failures[i].PredictedStart), intPtrSortKey(failures[j].PredictedStart); psI != psJ {
+			return psI < psJ
+		}
+		if peI, peJ := intPtrSortKey(failures[i].PredictedEnd), intPtrSortKey(failures[j].PredictedEnd); peI != peJ {
+			return peI < peJ
+		}
+		return failures[i].SourceLabel < failures[j].SourceLabel
 	})
 	return failures
+}
+
+func intPtrSortKey(v *int) int {
+	if v == nil {
+		return math.MaxInt
+	}
+	return *v
 }

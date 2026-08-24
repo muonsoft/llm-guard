@@ -62,6 +62,16 @@ func TestLoadThresholdSet_WhenValidFixture_ExpectSuccess(t *testing.T) {
 	assert.Equal(t, "diagnostic", set.ProfileStatus("exposure"))
 }
 
+func TestLoadThresholdSet_WhenPrefilterV1Fixture_ExpectSuccess(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(repoRoot(t), "testdata", "evaluation", "thresholds", "prefilter-v1.json")
+	set, err := evaluation.LoadThresholdSet(path)
+	require.NoError(t, err)
+	assert.Equal(t, "prefilter-v1", set.ID)
+	assert.Equal(t, "gate", set.ProfileStatus("lifecycle"))
+}
+
 func TestLoadThresholdSet_WhenUnknownProfile_ExpectRejection(t *testing.T) {
 	t.Parallel()
 

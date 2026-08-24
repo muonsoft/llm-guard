@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -31,6 +32,17 @@ func FormatContractMarkdown(report ContractReport) string {
 		))
 	}
 	b.WriteString(fmt.Sprintf("\nAggregate TP=%d FP=%d FN=%d\n", report.Summary.TP, report.Summary.FP, report.Summary.FN))
+	if rows := contractBySourceRows(report); len(rows) > 0 {
+		b.WriteString("\nBy source:\n\n")
+		b.WriteString("| Source | TP | FP | FN | Precision | Recall |\n")
+		b.WriteString("| --- | ---: | ---: | ---: | ---: | ---: |\n")
+		for _, row := range rows {
+			b.WriteString(fmt.Sprintf(
+				"| %s | %d | %d | %d | %.4f | %.4f |\n",
+				row.SourceID, row.TP, row.FP, row.FN, row.Precision, row.Recall,
+			))
+		}
+	}
 	if report.Diagnostics.OverlappingPairs > 0 {
 		b.WriteString(fmt.Sprintf("Overlap diagnostics (non-gating): %d overlapping-but-not-exact pairs\n", report.Diagnostics.OverlappingPairs))
 	}
@@ -101,6 +113,7 @@ func FormatContractJSON(report ContractReport) ([]byte, error) {
 			FP int `json:"fp"`
 			FN int `json:"fn"`
 		} `json:"summary"`
+		BySource    []contractSourceRow `json:"by_source,omitempty"`
 		Diagnostics struct {
 			OverlappingPairs int          `json:"overlapping_pairs"`
 			Failures         []failureRow `json:"failures,omitempty"`
@@ -117,6 +130,7 @@ func FormatContractJSON(report ContractReport) ([]byte, error) {
 	payload.Summary.TP = report.Summary.TP
 	payload.Summary.FP = report.Summary.FP
 	payload.Summary.FN = report.Summary.FN
+	payload.BySource = contractBySourceRows(report)
 	payload.Diagnostics.OverlappingPairs = report.Diagnostics.OverlappingPairs
 	for _, row := range report.Diagnostics.Failures {
 		payload.Diagnostics.Failures = append(payload.Diagnostics.Failures, failureRow{
@@ -173,6 +187,23 @@ func FormatExposureMarkdown(report ExposureReport) string {
 	b.WriteString(fmt.Sprintf("Leaked sensitive bytes: %d\n", report.Summary.LeakedSensitiveBytes))
 	b.WriteString(fmt.Sprintf("Overmatched bytes: %d\n", report.Summary.OvermatchedBytes))
 	b.WriteString(fmt.Sprintf("Byte coverage: %.4f\n\n", report.Summary.ByteCoverage))
+	if rows := exposureBySourceRows(report); len(rows) > 0 {
+		b.WriteString("By source:\n\n")
+		b.WriteString("| Source | Sensitive bytes | Covered | Leaked | Overmatched | Byte coverage |\n")
+		b.WriteString("| --- | ---: | ---: | ---: | ---: | ---: |\n")
+		for _, row := range rows {
+			b.WriteString(fmt.Sprintf(
+				"| %s | %d | %d | %d | %d | %.4f |\n",
+				row.SourceID,
+				row.SensitiveBytes,
+				row.CoveredSensitiveBytes,
+				row.LeakedSensitiveBytes,
+				row.OvermatchedBytes,
+				row.ByteCoverage,
+			))
+		}
+		b.WriteString("\n")
+	}
 	if len(report.ByLabel) > 0 {
 		b.WriteString("| Source label | Mapped entity | Disposition | Spans | Fully covered | Sensitive bytes | Covered | Leaked | Overmatched |\n")
 		b.WriteString("| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |\n")
@@ -231,8 +262,9 @@ func FormatExposureJSON(report ExposureReport) ([]byte, error) {
 			OvermatchedBytes      int     `json:"overmatched_bytes"`
 			ByteCoverage          float64 `json:"byte_coverage"`
 		} `json:"summary"`
-		ByLabel []labelRow   `json:"by_label"`
-		Ignored []ignoredRow `json:"ignored"`
+		BySource []exposureSourceRow `json:"by_source,omitempty"`
+		ByLabel  []labelRow          `json:"by_label"`
+		Ignored  []ignoredRow        `json:"ignored"`
 	}{
 		Profile:        report.Profile,
 		SuiteID:        report.SuiteID,
@@ -247,6 +279,7 @@ func FormatExposureJSON(report ExposureReport) ([]byte, error) {
 	payload.Summary.LeakedSensitiveBytes = report.Summary.LeakedSensitiveBytes
 	payload.Summary.OvermatchedBytes = report.Summary.OvermatchedBytes
 	payload.Summary.ByteCoverage = report.Summary.ByteCoverage
+	payload.BySource = exposureBySourceRows(report)
 	for _, row := range report.ByLabel {
 		payload.ByLabel = append(payload.ByLabel, labelRow{
 			SourceLabel:           row.SourceLabel,
@@ -274,4 +307,70 @@ func FormatExposureJSON(report ExposureReport) ([]byte, error) {
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+type contractSourceRow struct {
+	SourceID  string  `json:"source_id"`
+	TP        int     `json:"tp"`
+	FP        int     `json:"fp"`
+	FN        int     `json:"fn"`
+	Precision float64 `json:"precision"`
+	Recall    float64 `json:"recall"`
+}
+
+func contractBySourceRows(report ContractReport) []contractSourceRow {
+	if len(report.sourceSummaries) == 0 {
+		return nil
+	}
+	ids := make([]string, 0, len(report.sourceSummaries))
+	for id := range report.sourceSummaries {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	rows := make([]contractSourceRow, 0, len(ids))
+	for _, id := range ids {
+		s := report.sourceSummaries[id]
+		rows = append(rows, contractSourceRow{
+			SourceID:  id,
+			TP:        s.TP,
+			FP:        s.FP,
+			FN:        s.FN,
+			Precision: ratio(s.TP, s.TP+s.FP),
+			Recall:    ratio(s.TP, s.TP+s.FN),
+		})
+	}
+	return rows
+}
+
+type exposureSourceRow struct {
+	SourceID              string  `json:"source_id"`
+	SensitiveBytes        int     `json:"sensitive_bytes"`
+	CoveredSensitiveBytes int     `json:"covered_sensitive_bytes"`
+	LeakedSensitiveBytes  int     `json:"leaked_sensitive_bytes"`
+	OvermatchedBytes      int     `json:"overmatched_bytes"`
+	ByteCoverage          float64 `json:"byte_coverage"`
+}
+
+func exposureBySourceRows(report ExposureReport) []exposureSourceRow {
+	if len(report.sourceSummaries) == 0 {
+		return nil
+	}
+	ids := make([]string, 0, len(report.sourceSummaries))
+	for id := range report.sourceSummaries {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	rows := make([]exposureSourceRow, 0, len(ids))
+	for _, id := range ids {
+		s := report.sourceSummaries[id]
+		rows = append(rows, exposureSourceRow{
+			SourceID:              id,
+			SensitiveBytes:        s.SensitiveBytes,
+			CoveredSensitiveBytes: s.CoveredSensitiveBytes,
+			LeakedSensitiveBytes:  s.LeakedSensitiveBytes,
+			OvermatchedBytes:      s.OvermatchedBytes,
+			ByteCoverage:          s.ByteCoverage,
+		})
+	}
+	return rows
 }

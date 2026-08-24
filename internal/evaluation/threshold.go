@@ -20,13 +20,21 @@ var allowedThresholdStatuses = map[string]struct{}{
 	"diagnostic": {},
 }
 
-var allowedNumericBoundKeys = map[string]struct{}{
-	"max_fp":                     {},
-	"max_fn":                     {},
-	"min_precision":              {},
-	"min_recall":                 {},
-	"min_byte_coverage":          {},
-	"max_leaked_sensitive_bytes": {},
+var profileTopLevelBoundKeys = map[string]map[string]struct{}{
+	"contract": {
+		"max_fp":        {},
+		"max_fn":        {},
+		"min_precision": {},
+		"min_recall":    {},
+	},
+	"exposure": {
+		"min_byte_coverage":          {},
+		"max_leaked_sensitive_bytes": {},
+	},
+	"lifecycle": {
+		"max_fp": {},
+		"max_fn": {},
+	},
 }
 
 // ThresholdSet is a versioned profile threshold configuration.
@@ -120,6 +128,12 @@ func validateProfileThreshold(name string, profile ProfileThreshold) error {
 	if name == "lifecycle" && len(profile.Sources) > 0 {
 		return fmt.Errorf("thresholds profile %q: lifecycle sources bounds are not supported", name)
 	}
+	if name == "lifecycle" && len(profile.Entities) > 0 {
+		return fmt.Errorf("thresholds profile %q: lifecycle entities bounds are not supported", name)
+	}
+	if name == "exposure" && len(profile.Entities) > 0 {
+		return fmt.Errorf("thresholds profile %q: exposure entities bounds are not supported", name)
+	}
 	for entity, bounds := range profile.Entities {
 		if strings.TrimSpace(entity) == "" {
 			return fmt.Errorf("thresholds profile %q: entities contains empty key", name)
@@ -140,11 +154,41 @@ func validateProfileThreshold(name string, profile ProfileThreshold) error {
 }
 
 func validateNumericBoundsKeys(profile ProfileThreshold, name string) error {
-	// Top-level bounds are validated via struct tags; nested maps checked separately.
+	allowed, ok := profileTopLevelBoundKeys[name]
+	if !ok {
+		return fmt.Errorf("thresholds: unknown profile %q", name)
+	}
+	raw, err := json.Marshal(profile)
+	if err != nil {
+		return err
+	}
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &fields); err != nil {
+		return err
+	}
+	for key := range fields {
+		switch key {
+		case "status", "entities", "sources":
+			continue
+		}
+		if _, ok := allowed[key]; !ok {
+			return fmt.Errorf("thresholds profile %q: unknown field %q", name, key)
+		}
+	}
 	return nil
 }
 
 func validateNestedBounds(profileName, section, key string, bounds NumericBounds) error {
+	allowed, ok := profileTopLevelBoundKeys[profileName]
+	if !ok {
+		return fmt.Errorf("thresholds: unknown profile %q", profileName)
+	}
+	if profileName == "lifecycle" {
+		return fmt.Errorf("thresholds profile %q %s[%q]: nested bounds are not supported", profileName, section, key)
+	}
+	if profileName == "exposure" && section == "entities" {
+		return fmt.Errorf("thresholds profile %q %s[%q]: nested bounds are not supported", profileName, section, key)
+	}
 	raw, err := json.Marshal(bounds)
 	if err != nil {
 		return err
@@ -154,7 +198,7 @@ func validateNestedBounds(profileName, section, key string, bounds NumericBounds
 		return err
 	}
 	for k := range m {
-		if _, ok := allowedNumericBoundKeys[k]; !ok {
+		if _, ok := allowed[k]; !ok {
 			return fmt.Errorf("thresholds profile %q %s[%q]: unknown field %q", profileName, section, key, k)
 		}
 	}

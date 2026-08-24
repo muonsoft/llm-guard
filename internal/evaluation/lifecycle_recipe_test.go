@@ -1,6 +1,72 @@
 package evaluation
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
+
+func TestInferPlaceholderMap_WhenAlignedMask_ExpectTokenValue(t *testing.T) {
+	t.Parallel()
+	input := "Contact a@b.co"
+	masked := "Contact {{LLMG_0123456789abcdef0123456789abcdef_0001}}"
+	inferred, err := inferPlaceholderMap(input, masked)
+	if err != nil {
+		t.Fatalf("inferPlaceholderMap: %v", err)
+	}
+	token := "{{LLMG_0123456789abcdef0123456789abcdef_0001}}"
+	if inferred[token] != "a@b.co" {
+		t.Fatalf("inferred value = %q, want email placeholder value", inferred[token])
+	}
+}
+
+func TestExpectedRecipeRestore_WhenIdentityMasked_ExpectOriginalInput(t *testing.T) {
+	t.Parallel()
+	input := "Contact a@b.co"
+	masked := "Contact {{LLMG_0123456789abcdef0123456789abcdef_0001}}"
+	inferred, err := inferPlaceholderMap(input, masked)
+	if err != nil {
+		t.Fatalf("inferPlaceholderMap: %v", err)
+	}
+	if got := expectedRecipeRestore(masked, inferred); got != input {
+		t.Fatalf("expected restore = %q, want original input", got)
+	}
+}
+
+func TestExpectedRecipeRestore_WhenMutateRecipe_ExpectMutatedTokenNotWrapped(t *testing.T) {
+	t.Parallel()
+	input := "Contact a@b.co"
+	masked := "Contact {{LLMG_0123456789abcdef0123456789abcdef_0001}}"
+	inferred, err := inferPlaceholderMap(input, masked)
+	if err != nil {
+		t.Fatalf("inferPlaceholderMap: %v", err)
+	}
+	recipe := applyResponseRecipe(masked, "mutate_placeholder")
+	expected := expectedRecipeRestore(recipe, inferred)
+	if strings.HasPrefix(expected, "junk ") || strings.HasSuffix(expected, " junk") {
+		t.Fatalf("expected must not be junk-wrapped, got %q", expected)
+	}
+	if !placeholderPattern.MatchString(expected) {
+		t.Fatal("mutate recipe expected restore must retain mutated placeholder token")
+	}
+	if expected == input {
+		t.Fatal("mutate recipe expected restore must not equal original input")
+	}
+}
+
+func TestExpectedRecipeRestore_WhenJunkWrapped_ExpectNotEqualToExpected(t *testing.T) {
+	t.Parallel()
+	input := "Contact a@b.co"
+	masked := "Contact {{LLMG_0123456789abcdef0123456789abcdef_0001}}"
+	inferred, err := inferPlaceholderMap(input, masked)
+	if err != nil {
+		t.Fatalf("inferPlaceholderMap: %v", err)
+	}
+	expected := expectedRecipeRestore(masked, inferred)
+	junkWrapped := "junk " + expected + " junk"
+	if junkWrapped == expected {
+		t.Fatal("junk wrapper must change the string")
+	}
+}
 
 func TestApplyResponseRecipe_WhenMutatePlaceholder_ExpectDigitChanged(t *testing.T) {
 	t.Parallel()
@@ -31,22 +97,5 @@ func TestApplyResponseRecipe_WhenDeletePlaceholder_ExpectSingleRemoval(t *testin
 	}
 	if len(placeholderPattern.FindAllStringIndex(out, -1)) != 1 {
 		t.Fatalf("expected exactly one placeholder, got %q", out)
-	}
-}
-
-func TestPreservesRecipePlaintext_WhenEmptyRestored_ExpectFalse(t *testing.T) {
-	t.Parallel()
-	recipe := "Contact {{LLMG_0123456789abcdef0123456789abcdef_0001}} please"
-	if preservesRecipePlaintext(recipe, "") {
-		t.Fatal("empty restored must not preserve recipe plaintext")
-	}
-}
-
-func TestPreservesRecipePlaintext_WhenSequentialFragments_ExpectTrue(t *testing.T) {
-	t.Parallel()
-	recipe := "Contact {{LLMG_0123456789abcdef0123456789abcdef_0001}} please"
-	restored := "Contact restored-token please"
-	if !preservesRecipePlaintext(recipe, restored) {
-		t.Fatal("expected sequential plaintext fragments to match")
 	}
 }

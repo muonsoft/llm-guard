@@ -2,12 +2,15 @@ package evaluation
 
 import (
 	"context"
+	"errors"
 	"regexp"
 	"strings"
 
 	muerrors "github.com/muonsoft/errors"
 	"github.com/muonsoft/llm-guard"
 )
+
+var errPlaceholderAlignment = errors.New("mask/input placeholder alignment failed")
 
 // LifecycleCaseOutcome is the terminal lifecycle result for one case.
 type LifecycleCaseOutcome string
@@ -167,6 +170,10 @@ func evaluateLifecycleCase(ctx context.Context, guard *llmguard.Guard, rec Suite
 		if containsProtectedSubstrings(rec, result.Text) {
 			return fail(LifecycleOutcomeMutation, "masked text contains protected original substring")
 		}
+		inferred, alignErr := inferPlaceholderMap(rec.Input, result.Text)
+		if alignErr != nil {
+			return fail(LifecycleOutcomeError, alignErr.Error())
+		}
 		response := applyResponseRecipe(result.Text, lc.ResponseRecipe)
 		restored, err := guard.Restore(ctx, response, result.Tokens)
 		if err != nil {
@@ -177,26 +184,20 @@ func evaluateLifecycleCase(ctx context.Context, guard *llmguard.Guard, rec Suite
 			if restored != rec.Input {
 				return fail(LifecycleOutcomeRestoreMiss, "identity restore mismatch")
 			}
+			if expected := expectedRecipeRestore(result.Text, inferred); restored != expected {
+				return fail(LifecycleOutcomeRestoreMiss, "identity restore mismatch")
+			}
 			return nil
 		case "mutate_placeholder", "delete_placeholder", "collision":
 			if response == result.Text {
 				return fail(LifecycleOutcomeError, "recipe produced no placeholder change")
 			}
+			expected := expectedRecipeRestore(response, inferred)
+			if restored != expected {
+				return fail(LifecycleOutcomeMutation, "recipe restore mismatch")
+			}
 			if restored == rec.Input {
 				return fail(LifecycleOutcomeMutation, "expected mutation/miss outcome")
-			}
-			if !preservesRecipePlaintext(response, restored) {
-				return fail(LifecycleOutcomeMutation, "restored text missing recipe plaintext fragments")
-			}
-			switch lc.ResponseRecipe {
-			case "mutate_placeholder":
-				if !placeholderPattern.MatchString(restored) {
-					return fail(LifecycleOutcomeMutation, "restored text missing placeholder after mutation")
-				}
-			case "collision":
-				if !strings.Contains(restored, collisionFakeToken) {
-					return fail(LifecycleOutcomeMutation, "restored text missing collision fake token")
-				}
 			}
 			return nil
 		default:
@@ -240,22 +241,76 @@ func errStrContainsSecret(err error, rec SuiteRecord) bool {
 	return false
 }
 
-// preservesRecipePlaintext reports whether every non-empty plaintext fragment of recipe
-// text appears in order within restored (split on placeholder tokens).
-func preservesRecipePlaintext(recipeText, restored string) bool {
-	parts := placeholderPattern.Split(recipeText, -1)
-	pos := 0
-	for _, part := range parts {
-		if part == "" {
-			continue
+// inferPlaceholderMap aligns masked text with original input and returns
+// placeholder token → original substring mappings.
+func inferPlaceholderMap(input, masked string) (map[string]string, error) {
+	locs := placeholderPattern.FindAllStringIndex(masked, -1)
+	if len(locs) == 0 {
+		if masked != input {
+			return nil, errPlaceholderAlignment
 		}
-		idx := strings.Index(restored[pos:], part)
-		if idx < 0 {
-			return false
-		}
-		pos += idx + len(part)
+		return map[string]string{}, nil
 	}
-	return true
+
+	result := make(map[string]string, len(locs))
+	inputPos := 0
+	maskedPos := 0
+	for i, loc := range locs {
+		plaintext := masked[maskedPos:loc[0]]
+		if plaintext != "" {
+			if inputPos+len(plaintext) > len(input) || input[inputPos:inputPos+len(plaintext)] != plaintext {
+				return nil, errPlaceholderAlignment
+			}
+			inputPos += len(plaintext)
+		}
+
+		token := masked[loc[0]:loc[1]]
+		var nextPlaintext string
+		if i+1 < len(locs) {
+			nextPlaintext = masked[loc[1]:locs[i+1][0]]
+		} else {
+			nextPlaintext = masked[loc[1]:]
+		}
+
+		var valueEnd int
+		if nextPlaintext != "" {
+			idx := strings.Index(input[inputPos:], nextPlaintext)
+			if idx < 0 {
+				return nil, errPlaceholderAlignment
+			}
+			valueEnd = inputPos + idx
+		} else {
+			valueEnd = len(input)
+		}
+		result[token] = input[inputPos:valueEnd]
+		inputPos = valueEnd
+		maskedPos = loc[1]
+	}
+
+	if maskedPos < len(masked) {
+		trailing := masked[maskedPos:]
+		if inputPos+len(trailing) > len(input) || input[inputPos:] != trailing {
+			return nil, errPlaceholderAlignment
+		}
+		inputPos += len(trailing)
+	}
+	if inputPos != len(input) {
+		return nil, errPlaceholderAlignment
+	}
+	return result, nil
+}
+
+// expectedRecipeRestore substitutes known placeholders in recipeText using inferred
+// token→value pairs. Unknown placeholders remain unchanged (same as Restore).
+func expectedRecipeRestore(recipeText string, inferred map[string]string) string {
+	if len(inferred) == 0 {
+		return recipeText
+	}
+	pairs := make([]string, 0, len(inferred)*2)
+	for token, value := range inferred {
+		pairs = append(pairs, token, value)
+	}
+	return strings.NewReplacer(pairs...).Replace(recipeText)
 }
 
 func applyResponseRecipe(masked, recipe string) string {
