@@ -1,15 +1,15 @@
 ## 1. Core evaluation
 
-- [ ] 1.1 Добавить golden CLI/report tests, фиксирующие текущие schema v1 semantics, exact matching и legacy flags до расширения runner.
-- [ ] 1.2 Определить normalized suite v2 structs для source annotations, mapped entities, dispositions, lifecycle expectations и version metadata.
-- [ ] 1.3 Реализовать strict suite v2 loader с UTF-8 boundary, unique ID/span, disposition/reason и declared-scope validation без all-MVP coverage rule.
-- [ ] 1.4 Определить strict structs и loaders для source manifests, mapping policies и threshold sets с отказом на unknown fields/version mismatch.
-- [ ] 1.5 Выделить общий deterministic Detect → Resolve execution path, сохранив существующий v1 `Evaluate` behavior и entity order.
-- [ ] 1.6 Реализовать contract profile для `supported` annotations с exact entity/span TP/FP/FN, текущими rates и partial-overlap diagnostics.
-- [ ] 1.7 Реализовать interval-union primitives для sensitive, covered, leaked и overmatched UTF-8 byte counts без double counting.
-- [ ] 1.8 Реализовать exposure aggregation по source label, mapped entity и disposition, включая fully-covered spans и ignored-reason counts.
-- [ ] 1.9 Добавить safe deterministic JSON/Markdown formatters с profile scope, source/mapping/threshold metadata и без raw inputs/substrings.
-- [ ] 1.10 Расширить `cmd/llmguard-eval` mutually exclusive `-corpus`/`-suite` paths и flags `-profile`/`-thresholds`, не меняя legacy defaults и exit behavior.
+- [x] 1.1 Добавить golden CLI/report tests, фиксирующие текущие schema v1 semantics, exact matching и legacy flags до расширения runner.
+- [x] 1.2 Определить normalized suite v2 structs для source annotations, mapped entities, dispositions, lifecycle expectations и version metadata.
+- [x] 1.3 Реализовать strict suite v2 loader с UTF-8 boundary, unique ID/span, disposition/reason и declared-scope validation без all-MVP coverage rule.
+- [x] 1.4 Определить strict structs и loaders для source manifests, mapping policies и threshold sets с отказом на unknown fields/version mismatch.
+- [x] 1.5 Выделить общий deterministic Detect → Resolve execution path, сохранив существующий v1 `Evaluate` behavior и entity order.
+- [x] 1.6 Реализовать contract profile для `supported` annotations с exact entity/span TP/FP/FN, текущими rates и partial-overlap diagnostics.
+- [x] 1.7 Реализовать interval-union primitives для sensitive, covered, leaked и overmatched UTF-8 byte counts без double counting.
+- [x] 1.8 Реализовать exposure aggregation по source label, mapped entity и disposition, включая fully-covered spans и ignored-reason counts.
+- [x] 1.9 Добавить safe deterministic JSON/Markdown formatters с profile scope, source/mapping/threshold metadata и без raw inputs/substrings.
+- [x] 1.10 Расширить `cmd/llmguard-eval` mutually exclusive `-corpus`/`-suite` paths и flags `-profile`/`-thresholds`, не меняя legacy defaults и exit behavior.
 
 ## 2. Detectors и source mapping
 
@@ -46,12 +46,12 @@
 ## 5. Tests и CI
 
 - [ ] 5.1 Покрыть suite/manifest/mapping/threshold loaders table-driven tests для valid cases, unknown fields, invalid UTF-8 spans, duplicates и missing provenance.
-- [ ] 5.2 Покрыть contract evaluator exact, overlap, subset-scope и zero-denominator scenarios без изменения v1 regression tests.
-- [ ] 5.3 Покрыть exposure interval math nested/overlapping/disjoint/partial spans и supported/unsupported/ignored partitions.
+- [x] 5.2 Покрыть contract evaluator exact, overlap, subset-scope и zero-denominator scenarios без изменения v1 regression tests.
+- [x] 5.3 Покрыть exposure interval math nested/overlapping/disjoint/partial spans и supported/unsupported/ignored partitions.
 - [ ] 5.4 Добавить adapter golden tests для Cyrillic byte offsets, punctuation, BIO runs, disjoint passport parts и unmapped sensitive labels.
 - [ ] 5.5 Добавить fixed-seed reproducibility и valid/invalid invariant tests для всех structured/address/secret generators.
 - [ ] 5.6 Добавить lifecycle tests для reversible mask, block, collision, mutation, deletion, restore miss и safe diagnostics.
-- [ ] 5.7 Добавить CLI tests для legacy compatibility, mutually exclusive flags, diagnostic no-threshold status, threshold failures и formatter safety.
+- [x] 5.7 Добавить CLI tests для legacy compatibility, mutually exclusive flags, diagnostic no-threshold status, threshold failures и formatter safety.
 - [ ] 5.8 Добавить bounded generated/lifecycle smoke в `.github/workflows/ci.yml` без network и external cache.
 - [ ] 5.9 Добавить scheduled/workflow-dispatch external evaluation workflow с cache, pinned fetch, normalization и uploaded report artifact без auto-commit.
 - [ ] 5.10 Обновить `scripts/release-check.sh`, чтобы offline gates оставались network-free и readiness проверяла наличие external report metadata для exact release commit.

@@ -36,11 +36,7 @@ func Evaluate(ctx context.Context, guard *llmguard.Guard, cases []Case) (Report,
 	}
 
 	for _, tc := range cases {
-		findings, err := guard.Detect(ctx, tc.Input)
-		if err != nil {
-			return Report{}, err
-		}
-		resolved, err := llmguard.Resolve(tc.Input, findings)
+		resolved, err := DetectResolve(ctx, guard, tc.Input)
 		if err != nil {
 			return Report{}, err
 		}

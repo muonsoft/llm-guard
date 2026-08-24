@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "id": "synthetic-source",
+  "canonical_url": "https://example.com/synthetic",
+  "revision": "rev-001",
+  "digest_sha256": "abc123def456",
+  "license": "MIT",
+  "attribution": "llm-guard test fixture",
+  "distribution": "committed-derived",
+  "adapter_version": "1.0.0",
+  "snapshot_date": "2026-01-01"
+}
