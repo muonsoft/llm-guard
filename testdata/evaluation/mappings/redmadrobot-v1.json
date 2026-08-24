@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "version": "redmadrobot-v1",
+  "source_id": "redmadrobot-pii-benchmark",
+  "direct": {
+    "EMAIL": "EMAIL",
+    "PHONE": "PHONE",
+    "URL": "URL",
+    "IP_ADDRESS": "IP_ADDRESS",
+    "INN": "INN",
+    "SNILS": "SNILS",
+    "PASSPORT": "PASSPORT",
+    "CREDIT_CARD": "BANK_CARD"
+  },
+  "person": {
+    "components": ["FIRST_NAME", "LAST_NAME", "MIDDLE_NAME"],
+    "min_components": 2
+  },
+  "address": {
+    "required": ["STREET", "HOUSE"]
+  },
+  "unmapped_sensitive": [
+    "OMS",
+    "DRIVER_LICENSE",
+    "MILITARY_ID",
+    "BIRTH_CERTIFICATE"
+  ],
+  "ignore_reasons": [
+    "adapter_token_not_found_in_text",
+    "adapter_token_tag_length_mismatch",
+    "adapter_rune_to_byte_failed"
+  ]
+}

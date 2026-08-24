@@ -13,44 +13,44 @@
 
 ## 2. Detectors и source mapping
 
-- [ ] 2.1 Реализовать versioned direct-label mapping для EMAIL, PHONE, URL, IP_ADDRESS, INN, SNILS, CREDIT_CARD и PASSPORT без изменения production detectors.
-- [ ] 2.2 Реализовать PERSON composition mapping для RedMadRobot name-component runs с явным разделением supported и exposure-only single-component annotations.
-- [ ] 2.3 Реализовать ADDRESS composition mapping для STREET+HOUSE intervals и exposure-only CITY/REGION/standalone components.
-- [ ] 2.4 Реализовать RedMadRobot BIO-token alignment к original UTF-8 text и normalized byte spans с fail-closed diagnostics по record ID.
-- [ ] 2.5 Реализовать FactRuEval PERSON adapter и mapping на pinned source schema с сохранением исходных labels/spans.
-- [ ] 2.6 Добавить deterministic checksum-aware generators для INN, SNILS, BANK_CARD и BANK_ACCOUNT valid/invalid/near-miss cases.
-- [ ] 2.7 Добавить deterministic generators для PASSPORT, DATE_OF_BIRTH, PHONE, EMAIL, URL и IP Unicode/context boundary cases.
-- [ ] 2.8 Добавить ADDRESS generator interface и fixed-seed synthetic implementation; подключение ФИАС/ГАР разрешать только через verified offline snapshot manifest.
-- [ ] 2.9 Добавить synthetic JWT, PEM private key, API key и connection-string generators и adapter для отобранных MIT Gitleaks fixtures.
+- [x] 2.1 Реализовать versioned direct-label mapping для EMAIL, PHONE, URL, IP_ADDRESS, INN, SNILS, CREDIT_CARD и PASSPORT без изменения production detectors.
+- [x] 2.2 Реализовать PERSON composition mapping для RedMadRobot name-component runs с явным разделением supported и exposure-only single-component annotations.
+- [x] 2.3 Реализовать ADDRESS composition mapping для STREET+HOUSE intervals и exposure-only CITY/REGION/standalone components.
+- [x] 2.4 Реализовать RedMadRobot BIO-token alignment к original UTF-8 text и normalized byte spans с fail-closed diagnostics по record ID.
+- [x] 2.5 Реализовать FactRuEval PERSON adapter и mapping на pinned source schema с сохранением исходных labels/spans.
+- [x] 2.6 Добавить deterministic checksum-aware generators для INN, SNILS, BANK_CARD и BANK_ACCOUNT valid/invalid/near-miss cases.
+- [x] 2.7 Добавить deterministic generators для PASSPORT, DATE_OF_BIRTH, PHONE, EMAIL, URL и IP Unicode/context boundary cases.
+- [x] 2.8 Добавить ADDRESS generator interface и fixed-seed synthetic implementation; подключение ФИАС/ГАР разрешать только через verified offline snapshot manifest.
+- [x] 2.9 Добавить synthetic JWT, PEM private key, API key и connection-string generators и adapter для отобранных MIT Gitleaks fixtures.
 
 ## 3. Masking и lifecycle
 
-- [ ] 3.1 Реализовать lifecycle profile, выполняющий configured Detect → Resolve → policy → Mask → Restore на normalized cases.
-- [ ] 3.2 Добавить проверку, что mask action удаляет protected original spans, а unchanged placeholders восстанавливают input byte-for-byte.
-- [ ] 3.3 Добавить проверку secret block action с отсутствующим outbound text и отдельным machine-readable outcome.
-- [ ] 3.4 Добавить deterministic placeholder collision, mutation, deletion и restore-miss recipes с ожидаемыми lifecycle outcomes.
-- [ ] 3.5 Ограничить lifecycle failure diagnostics безопасными IDs, labels, spans, counts и hashes; добавить marker leakage assertions.
+- [x] 3.1 Реализовать lifecycle profile, выполняющий configured Detect → Resolve → policy → Mask → Restore на normalized cases.
+- [x] 3.2 Добавить проверку, что mask action удаляет protected original spans, а unchanged placeholders восстанавливают input byte-for-byte.
+- [x] 3.3 Добавить проверку secret block action с отсутствующим outbound text и отдельным machine-readable outcome.
+- [x] 3.4 Добавить deterministic placeholder collision, mutation, deletion и restore-miss recipes с ожидаемыми lifecycle outcomes.
+- [x] 3.5 Ограничить lifecycle failure diagnostics безопасными IDs, labels, spans, counts и hashes; добавить marker leakage assertions.
 
 ## 4. Audit и source preparation
 
-- [ ] 4.1 Реализовать dev-only `cmd/llmguard-eval-data` actions `fetch` и `normalize` с explicit cache path и без неявного network access evaluator.
-- [ ] 4.2 Добавить digest verification до и после download, atomic cache placement и запрет normalization при manifest/schema mismatch.
-- [ ] 4.3 Зафиксировать RedMadRobot manifest на revision `f77ea831274daf980cc45c61a93c226be9d978d6`, подтвердить artifact SHA-256, MIT license, attribution и manifest-only distribution.
-- [ ] 4.4 Провести license/provenance review FactRuEval, закрепить immutable commit/digests и определить разрешённую cache/report boundary.
-- [ ] 4.5 Провести license/provenance review выбранных Gitleaks fixtures, закрепить commit/digests и исключить действующие либо сомнительные credentials.
-- [ ] 4.6 Зафиксировать правила dated ФИАС/ГАР snapshot, attribution и derived-output review либо оставить source отключённым при неподтверждённой redistribution policy.
-- [ ] 4.7 Добавить `.cache/llm-guard/evaluation/` в ignore policy и проверить, что raw external corpora не попадают в module/release artifacts.
+- [x] 4.1 Реализовать dev-only `cmd/llmguard-eval-data` actions `fetch` и `normalize` с explicit cache path и без неявного network access evaluator.
+- [x] 4.2 Добавить digest verification до и после download, atomic cache placement и запрет normalization при manifest/schema mismatch.
+- [x] 4.3 Зафиксировать RedMadRobot manifest на revision `f77ea831274daf980cc45c61a93c226be9d978d6`, подтвердить artifact SHA-256, MIT license, attribution и manifest-only distribution.
+- [x] 4.4 Провести license/provenance review FactRuEval, закрепить immutable commit/digests и определить разрешённую cache/report boundary.
+- [x] 4.5 Провести license/provenance review выбранных Gitleaks fixtures, закрепить commit/digests и исключить действующие либо сомнительные credentials.
+- [x] 4.6 Зафиксировать правила dated ФИАС/ГАР snapshot, attribution и derived-output review либо оставить source отключённым при неподтверждённой redistribution policy.
+- [x] 4.7 Добавить `.cache/llm-guard/evaluation/` в ignore policy и проверить, что raw external corpora не попадают в module/release artifacts.
 - [ ] 4.8 Выполнить initial diagnostic run, проверить adapter alignment и disposition counts и сохранить безопасный aggregate baseline без raw values.
 - [ ] 4.9 После review initial baseline создать `prefilter-v1` threshold set с per-profile/entity/source boundaries и documented rationale.
 
 ## 5. Tests и CI
 
-- [ ] 5.1 Покрыть suite/manifest/mapping/threshold loaders table-driven tests для valid cases, unknown fields, invalid UTF-8 spans, duplicates и missing provenance.
+- [x] 5.1 Покрыть suite/manifest/mapping/threshold loaders table-driven tests для valid cases, unknown fields, invalid UTF-8 spans, duplicates и missing provenance.
 - [x] 5.2 Покрыть contract evaluator exact, overlap, subset-scope и zero-denominator scenarios без изменения v1 regression tests.
 - [x] 5.3 Покрыть exposure interval math nested/overlapping/disjoint/partial spans и supported/unsupported/ignored partitions.
-- [ ] 5.4 Добавить adapter golden tests для Cyrillic byte offsets, punctuation, BIO runs, disjoint passport parts и unmapped sensitive labels.
-- [ ] 5.5 Добавить fixed-seed reproducibility и valid/invalid invariant tests для всех structured/address/secret generators.
-- [ ] 5.6 Добавить lifecycle tests для reversible mask, block, collision, mutation, deletion, restore miss и safe diagnostics.
+- [x] 5.4 Добавить adapter golden tests для Cyrillic byte offsets, punctuation, BIO runs, disjoint passport parts и unmapped sensitive labels.
+- [x] 5.5 Добавить fixed-seed reproducibility и valid/invalid invariant tests для всех structured/address/secret generators.
+- [x] 5.6 Добавить lifecycle tests для reversible mask, block, collision, mutation, deletion, restore miss и safe diagnostics.
 - [x] 5.7 Добавить CLI tests для legacy compatibility, mutually exclusive flags, diagnostic no-threshold status, threshold failures и formatter safety.
 - [ ] 5.8 Добавить bounded generated/lifecycle smoke в `.github/workflows/ci.yml` без network и external cache.
 - [ ] 5.9 Добавить scheduled/workflow-dispatch external evaluation workflow с cache, pinned fetch, normalization и uploaded report artifact без auto-commit.

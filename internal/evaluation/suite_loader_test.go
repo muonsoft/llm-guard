@@ -71,6 +71,69 @@ func TestLoadSuite_WhenUnknownField_ExpectRejection(t *testing.T) {
 	assert.Contains(t, err.Error(), "unknown field")
 }
 
+func TestLoadSuite_WhenMidRuneSpan_ExpectRejection(t *testing.T) {
+	t.Parallel()
+
+	input := "абв"
+	sum := sha256.Sum256([]byte(input))
+	// Span starts inside first Cyrillic rune (2 bytes), not on boundary.
+	line := `{"schema_version":2,"suite_id":"s","source_id":"x","source_record_id":"r1","mapping_version":"v1","input":"` + input + `","input_sha256":"` + hex.EncodeToString(sum[:]) + `","annotations":[{"source_label":"EMAIL","mapped_entity":"EMAIL","start":1,"end":3,"disposition":"supported"}]}`
+	path := writeSuiteLine(t, line)
+	_, err := evaluation.LoadSuite(path)
+	require.Error(t, err)
+	assert.NotContains(t, err.Error(), input)
+	assert.Contains(t, err.Error(), "UTF-8 boundary")
+}
+
+func TestLoadSuite_WhenDuplicateSourceRecordID_ExpectRejection(t *testing.T) {
+	t.Parallel()
+
+	sum := sha256.Sum256([]byte("x"))
+	h := hex.EncodeToString(sum[:])
+	line1 := `{"schema_version":2,"suite_id":"s","source_id":"x","source_record_id":"dup","mapping_version":"v1","input":"x","input_sha256":"` + h + `","annotations":[]}`
+	line2 := line1
+	dir := t.TempDir()
+	path := filepath.Join(dir, "suite.jsonl")
+	require.NoError(t, os.WriteFile(path, []byte(line1+"\n"+line2+"\n"), 0o600))
+	_, err := evaluation.LoadSuite(path)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "duplicate source_record_id")
+}
+
+func TestLoadSuite_WhenDuplicateAnnotationSpan_ExpectRejection(t *testing.T) {
+	t.Parallel()
+
+	input := "aa"
+	sum := sha256.Sum256([]byte(input))
+	line := `{"schema_version":2,"suite_id":"s","source_id":"x","source_record_id":"r1","mapping_version":"v1","input":"` + input + `","input_sha256":"` + hex.EncodeToString(sum[:]) + `","annotations":[{"source_label":"L","mapped_entity":"EMAIL","start":0,"end":1,"disposition":"supported"},{"source_label":"L","mapped_entity":"EMAIL","start":0,"end":1,"disposition":"supported"}]}`
+	path := writeSuiteLine(t, line)
+	_, err := evaluation.LoadSuite(path)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "duplicate span")
+}
+
+func TestLoadSourceManifest_WhenEmptyDigest_ExpectRejection(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "manifest.json")
+	require.NoError(t, os.WriteFile(path, []byte(`{"schema_version":1,"id":"x","canonical_url":"u","revision":"r","digest_sha256":"","license":"l","attribution":"a","distribution":"cache-only","adapter_version":"1"}`), 0o600))
+	_, err := evaluation.LoadSourceManifest(path)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "digest_sha256 is empty")
+}
+
+func TestLoadSourceManifest_WhenMissingAttribution_ExpectRejection(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "manifest.json")
+	require.NoError(t, os.WriteFile(path, []byte(`{"schema_version":1,"id":"x","canonical_url":"u","revision":"r","digest_sha256":"abc","license":"l","attribution":"","distribution":"cache-only","adapter_version":"1"}`), 0o600))
+	_, err := evaluation.LoadSourceManifest(path)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "attribution is empty")
+}
+
 func TestLoadSuite_WhenSpanError_ExpectNoInputSubstring(t *testing.T) {
 	t.Parallel()
 

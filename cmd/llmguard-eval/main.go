@@ -109,8 +109,7 @@ func runV2(ctx context.Context, guard *llmguard.Guard, suitePath, profile, thres
 	case "exposure":
 		return runExposure(ctx, guard, suite, thresholds, reportFormat, failOnRegression)
 	case "lifecycle":
-		fmt.Fprintln(os.Stderr, "lifecycle profile is not implemented")
-		return 1
+		return runLifecycle(ctx, guard, suite, thresholds, reportFormat, failOnRegression)
 	default:
 		fmt.Fprintf(os.Stderr, "unsupported profile %q\n", profile)
 		return 2
@@ -205,6 +204,47 @@ func writeExposureReport(report evaluation.ExposureReport, reportFormat string) 
 		fmt.Print(evaluation.FormatExposureMarkdown(report))
 	case "json":
 		out, err := evaluation.FormatExposureJSON(report)
+		if err != nil {
+			return 0, err
+		}
+		fmt.Print(string(out))
+	default:
+		fmt.Fprintf(os.Stderr, "unsupported format %q\n", reportFormat)
+		return 2, nil
+	}
+	return 0, nil
+}
+
+func runLifecycle(ctx context.Context, guard *llmguard.Guard, suite evaluation.Suite, thresholds evaluation.ThresholdSet, reportFormat string, failOnRegression bool) int {
+	report, err := evaluation.EvaluateLifecycle(ctx, guard, suite)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "evaluate: %v\n", err)
+		return 1
+	}
+	if thresholds.ID != "" {
+		evaluation.ApplyLifecycleThresholds(&report, thresholds)
+	}
+	if code, err := writeLifecycleReport(report, reportFormat); code != 0 {
+		return code
+	} else if err != nil {
+		fmt.Fprintf(os.Stderr, "format: %v\n", err)
+		return 1
+	}
+	if failOnRegression && report.HasLifecycleRegression() {
+		return 1
+	}
+	if thresholds.ID != "" && report.Status == evaluation.StatusFail {
+		return 1
+	}
+	return 0
+}
+
+func writeLifecycleReport(report evaluation.LifecycleReport, reportFormat string) (int, error) {
+	switch reportFormat {
+	case "markdown", "md":
+		fmt.Print(evaluation.FormatLifecycleMarkdown(report))
+	case "json":
+		out, err := evaluation.FormatLifecycleJSON(report)
 		if err != nil {
 			return 0, err
 		}

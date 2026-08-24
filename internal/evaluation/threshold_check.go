@@ -85,6 +85,48 @@ func violatesExposureBounds(report *ExposureReport, profile ProfileThreshold) bo
 	return false
 }
 
+// ApplyLifecycleThresholds updates lifecycle report status from threshold set.
+func ApplyLifecycleThresholds(report *LifecycleReport, set ThresholdSet) {
+	profile, ok := set.ProfileThresholdFor(string(ProfileLifecycle))
+	if !ok {
+		report.Status = StatusDiagnostic
+		return
+	}
+	report.ThresholdID = set.ID
+	if profile.Status == "diagnostic" {
+		report.Status = StatusDiagnostic
+		return
+	}
+	if report.HasLifecycleRegression() {
+		report.Status = StatusFail
+		return
+	}
+	if violatesLifecycleBounds(report, profile) {
+		report.Status = StatusFail
+		return
+	}
+	report.Status = StatusPass
+}
+
+func violatesLifecycleBounds(report *LifecycleReport, profile ProfileThreshold) bool {
+	if profile.MaxFN != nil && float64(len(report.Diagnostics)) > *profile.MaxFN {
+		return true
+	}
+	if profile.MaxFP != nil && float64(report.Errors) > *profile.MaxFP {
+		return true
+	}
+	return false
+}
+
+// LifecycleFailsGate returns true when lifecycle thresholds with gate status are violated.
+func LifecycleFailsGate(report LifecycleReport, set ThresholdSet) bool {
+	profile, ok := set.ProfileThresholdFor(string(ProfileLifecycle))
+	if !ok || profile.Status != "gate" {
+		return false
+	}
+	return report.HasLifecycleRegression() || violatesLifecycleBounds(&report, profile)
+}
+
 // ExposureFailsGate returns true when exposure thresholds with gate status are violated.
 func ExposureFailsGate(report ExposureReport, set ThresholdSet) bool {
 	profile, ok := set.ProfileThresholdFor(string(ProfileExposure))

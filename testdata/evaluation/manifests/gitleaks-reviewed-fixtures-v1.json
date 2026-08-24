@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "id": "gitleaks-reviewed-fixtures",
+  "canonical_url": "https://github.com/gitleaks/gitleaks",
+  "revision": "83d9cd684c87d95d656c1458ef04895a7f1cbd8e",
+  "digest_sha256": "08bcb5a105444026c0ec2fe1d1568e1a9bb7694860df227292cdcbd396196896",
+  "license": "MIT",
+  "attribution": "Copyright (c) 2019 Zachary Rice. Gitleaks v8.30.1 (https://github.com/gitleaks/gitleaks, commit 83d9cd684c87d95d656c1458ef04895a7f1cbd8e). MIT License.",
+  "distribution": "committed-derived",
+  "adapter_version": "1.0.0"
+}

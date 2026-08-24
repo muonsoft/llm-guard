@@ -145,16 +145,18 @@ func TestEvaluationCLI_WhenContractSuite_ExpectExitZero(t *testing.T) {
 	require.NoError(t, err, string(out))
 }
 
-func TestEvaluationCLI_WhenLifecycleProfile_ExpectExit1(t *testing.T) {
+func TestEvaluationCLI_WhenLifecycleProfileSmoke_ExpectPass(t *testing.T) {
 	t.Parallel()
 
 	root := repoRoot(t)
 	cmd := evalCLI(t,
-		"-suite", filepath.Join(root, "testdata", "evaluation", "suites", "contract.jsonl"),
+		"-suite", filepath.Join(root, "testdata", "evaluation", "generated", "smoke.jsonl"),
 		"-profile", "lifecycle",
+		"-fail-on-regression",
 	)
-	err := cmd.Run()
-	requireExitCode(t, err, 1)
+	out, err := cmd.CombinedOutput()
+	require.NoError(t, err, string(out))
+	assert.Contains(t, string(out), "Profile: lifecycle")
 }
 
 func TestEvaluationCLI_WhenUnsupportedFormatCorpus_ExpectExit2(t *testing.T) {

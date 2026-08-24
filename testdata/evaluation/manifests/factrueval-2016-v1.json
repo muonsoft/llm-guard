@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "id": "factrueval-2016",
+  "canonical_url": "https://github.com/dialogue-evaluation/factRuEval-2016",
+  "revision": "dfe96237fce79fde13b2021d1938587e4ea3042e",
+  "digest_sha256": "b045414e8419f4f12e04a0d4d22628447a5377fae2df7de469dc1d5941e7c19e",
+  "license": "MIT",
+  "attribution": "Copyright (c) 2015 dialogue-evaluation. FactRuEval-2016 (https://github.com/dialogue-evaluation/factRuEval-2016), commit dfe96237fce79fde13b2021d1938587e4ea3042e. MIT License.",
+  "distribution": "cache-only",
+  "adapter_version": "1.0.0"
+}
