@@ -29,10 +29,8 @@
 | [M7](M7-safe-observability-rc.md) | Safe observability и MVP release candidate | M5, M6 | `archived` | `m7-safe-observability-rc` | C | 35/35 | 1 | 2 | `done` | `done` | `done` | `done` | `openspec/changes/archive/2026-08-12-m7-safe-observability-rc/`, `openspec/specs/safe-observability/spec.md`, `docs/evaluation-baseline.md`, `docs/benchmark-baseline.md`, `docs/safe-surface-audit.md` |
 | [M8](M8-oss-stabilization.md) | OSS-ready `v0.1.0` | M7 | `archived` | `m8-oss-stabilization` | C | 36/36 | 1 | 2 | `done` | `done` | `done` | `done` | `openspec/changes/archive/2026-08-12-m8-oss-stabilization/`, `openspec/specs/oss-distribution/spec.md`, `docs/mvp-readiness-matrix.md`, `docs/dependency-license-inventory.md`, `docs/m8-quality-benchmark-comparison.md` |
 | [PEB](PEB-prefilter-evaluation-benchmark.md) | Precision-oriented prefilter evaluation benchmark | M8 | `archived` | `prefilter-evaluation-benchmark` | Cursor-native | 52/52 | 3 | 2 | `done` | `done` | `done` | `done` | `openspec/changes/archive/2026-08-24-prefilter-evaluation-benchmark/`, `openspec/specs/prefilter-evaluation/spec.md`, `openspec/specs/oss-distribution/spec.md`, `docs/evaluation/external-baseline.md` |
+| [D1](D1-bilingual-readme.md) | Bilingual public README | PEB | `archived` | `bilingual-readme` | C | 6/6 | 1 | 2 | `done` | `done` | `done` | `done` | `openspec/changes/archive/2026-08-25-bilingual-readme/`, `openspec/specs/oss-distribution/spec.md`, `README.md`, `README.ru.md` |
 
 ## Текущая сессия
 
-Нет активной milestone-сессии. PEB archived; следующую milestone-сессию не начинать в этом run.
-
-После `archived` секция очищается перед завершением сессии; evidence остаётся в
-строке milestone и `docs/orchestration_experiment.md`.
+Нет активной milestone-сессии. D1 archived; следующую milestone-сессию не начинать в этом run.

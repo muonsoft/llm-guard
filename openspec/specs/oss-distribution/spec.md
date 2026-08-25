@@ -110,6 +110,25 @@ Public documentation SHALL называть llm-guard локальным precisi
 - **WHEN** repository показывает contract либо exposure metrics
 - **THEN** result явно обозначает profile, corpus scope и limitations и не называется доказательством полной DLP-защиты
 
+### Requirement: Двуязычный публичный entry point
+Repository SHALL предоставлять основной англоязычный `README.md` и эквивалентный
+русскоязычный `README.ru.md`; каждый файл MUST содержать заметный переход на
+другой язык, canonical import path, рабочий `Mask → LLM → Restore` quick start,
+поддерживаемые detector families, secure defaults, precision-oriented prefilter
+boundary, известные ограничения и ссылки на подробную документацию.
+
+#### Scenario: Consumer выбирает язык
+- **WHEN** англо- или русскоязычный consumer открывает любой публичный README
+- **THEN** в начале документа доступна ссылка на эквивалентную версию на другом языке
+
+#### Scenario: Consumer оценивает интеграцию по любому README
+- **WHEN** consumer читает английскую или русскую версию перед подключением library
+- **THEN** обе версии сообщают одинаковые install/status facts, public flow, secret-block default, caller-owned `TokenSet`, false-negative boundary и отсутствие high-recall DLP guarantee
+
+#### Scenario: Quick start следует проверяемому public API
+- **WHEN** maintainer сверяет README quick start с repository examples и external consumer fixture
+- **THEN** пример использует только canonical public module path, обрабатывает ошибки `New`, `Mask` и `Restore` и не зависит от `internal/` packages
+
 ### Requirement: Release evidence разделяет обязательные и диагностические suites
 Release-readiness evidence MUST отдельно показывать статус обязательного offline conformance/lifecycle gate и результат pinned external contract/exposure suites. External report MUST быть привязан к exact git commit, source manifests, mapping policy и threshold version; отсутствие актуального external report MUST блокировать утверждение заявленного benchmark evidence, но MUST NOT добавлять network dependency обычному consumer или стандартному PR test run.
 
@@ -131,4 +150,3 @@ Production Go module MUST NOT зависеть от external benchmark runtime, 
 #### Scenario: Maintainer добавляет новый benchmark source
 - **WHEN** source предлагается для external либо generated suite
 - **THEN** до включения фиксируются revision/digest, provenance, license, attribution, data-safety review и выбранная distribution strategy
-
