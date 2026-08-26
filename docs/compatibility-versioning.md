@@ -29,11 +29,12 @@
 
 | Check | Version | Purpose |
 | --- | --- | --- |
-| Minimum supported | **Go 1.26.2** (`go` directive in `go.mod`) | documents the lowest supported toolchain |
-| CI matrix | `1.26.2` and `stable` | proves minimum boundary and forward compatibility signal |
-| Release dry-run | Go 1.26.2 | canonical local/CI reproduction per [release-checklist.md](release-checklist.md) |
+| Minimum supported | **Go 1.26.6** (`go` directive in `go.mod`) | documents the lowest supported toolchain |
+| CI matrix | `1.26.6` and `stable` | proves minimum boundary and forward compatibility signal |
+| Release dry-run | Go 1.26.6 | canonical local/CI reproduction per [release-checklist.md](release-checklist.md) |
+| Vulnerability scan | Go 1.26.6 + `govulncheck@v1.7.0` | pinned online security gate via `GOTOOLCHAIN=go1.26.6 ./scripts/release-check.sh vuln` |
 
-Consumers MUST use Go **1.26.2 or newer**. Older toolchains are unsupported.
+Consumers MUST use Go **1.26.6 or newer**. Older toolchains are unsupported.
 
 Forward failures on `stable` are compatibility signals; fixing them may require a
 policy/changelog update but does not by itself change the declared minimum until
@@ -78,6 +79,7 @@ See [known-limitations.md](known-limitations.md).
 ## Release boundary
 
 Repository readiness for `v0.1.0` is established by green `./scripts/release-check.sh`
-and the [MVP readiness matrix](mvp-readiness-matrix.md). Creating the git tag and
-GitHub release remains a **separate manual step** documented in the release
-checklist.
+(full offline dry-run) and `GOTOOLCHAIN=go1.26.6 ./scripts/release-check.sh vuln`
+(pinned online security scan on the exact minimum toolchain) plus the
+[MVP readiness matrix](mvp-readiness-matrix.md). Publication uses the GitHub
+**Release** workflow after green CI; see [release-checklist.md](release-checklist.md).

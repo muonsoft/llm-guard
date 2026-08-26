@@ -11,8 +11,8 @@ prefilter** (точностно-ориентированный предфиль�
 **Статус:** MVP **готов к `v0.1.0`** — полный встроенный набор детекторов,
 неизменяемая политика allow/mask/block, детерминированное разрешение конфликтов,
 обратимая маскировка и восстановление, **безопасная наблюдаемость, не привязанная
-к фреймворку** (`Noop` по умолчанию) и **воспроизводимый пробный прогон релиза**.
-Тег `v0.1.0` и GitHub release **ещё не опубликованы**; см.
+к фреймворку** (`Noop` по умолчанию) и **воспроизводимые release gates**.
+Публикация выполняется через GitHub workflow **Release** после зелёного CI; см.
 [docs/release-checklist.md](docs/release-checklist.md).
 
 **Библиотека, а не сервис:** pure Go, только CPU, встраивается в приложение.
@@ -22,19 +22,19 @@ gateway. Встроенные детекторы **RU-first** для PERSON и A
 
 ## Установка
 
-Пока `v0.1.0` не опубликован, устанавливайте **текущую версию из ветки `main`**:
+Снимок разработки из `main`:
 
 ```bash
 go get github.com/muonsoft/llm-guard@main
 ```
 
-После публикации тега:
+Выпущенная версия (когда существует семантический тег):
 
 ```bash
 go get github.com/muonsoft/llm-guard@v0.1.0
 ```
 
-Требуется **Go 1.26.2+** — см.
+Требуется **Go 1.26.6+** — см.
 [docs/compatibility-versioning.md](docs/compatibility-versioning.md).
 
 ## Пайплайн
@@ -154,8 +154,15 @@ PII маскируются по умолчанию. Секреты блокир�
 ```bash
 go test ./...
 go vet ./...
+./scripts/release-check.sh
+GOTOOLCHAIN=go1.26.6 ./scripts/release-check.sh vuln
 ./scripts/release-check.sh consumer
 ```
+
+`./scripts/release-check.sh` — офлайн полный пробный прогон релиза (без сети).
+Проверка уязвимостей — отдельный онлайн-gate и требует точной минимальной
+toolchain (`GOTOOLCHAIN=go1.26.6`); см.
+[docs/release-checklist.md](docs/release-checklist.md).
 
 Границы качества по семействам:
 [docs/person-quality-report.md](docs/person-quality-report.md),
@@ -171,8 +178,8 @@ go vet ./...
 | [docs/known-limitations.md](docs/known-limitations.md) | Опубликованные границы MVP |
 | [docs/compatibility-versioning.md](docs/compatibility-versioning.md) | Pre-1.0 SemVer и поддержка Go |
 | [docs/secret-patterns.md](docs/secret-patterns.md) | Описание шаблонов секретов |
-| [docs/release-checklist.md](docs/release-checklist.md) | Ручные шаги создания тега и релиза `v0.1.0` |
-| [CHANGELOG.md](CHANGELOG.md) | Невыпущенные и планируемые заметки к `v0.1.0` |
+| [docs/release-checklist.md](docs/release-checklist.md) | Чеклист релиза и GitHub Release workflow |
+| [CHANGELOG.md](CHANGELOG.md) | Release notes и планируемый scope `v0.1.0` |
 
 ## Участие, безопасность, лицензия
 

@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go-version: ['1.26.2', 'stable']
+        go-version: ['1.26.6', 'stable']
     steps:
       - uses: actions/checkout@v4
 
@@ -32,18 +32,30 @@ jobs:
         run: go vet ./...
 
   race:
-    name: race (Go 1.26.2)
+    name: race (Go 1.26.6)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.26.2'
+          go-version: '1.26.6'
           cache: true
 
       - name: Race
         run: go test -race ./...
+
+  prepare-release:
+    name: prepare-release scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Shell syntax
+        run: bash -n scripts/prepare-release.sh scripts/prepare-release-test.sh
+
+      - name: Prepare release tests
+        run: bash scripts/prepare-release-test.sh
 
   consumer:
     name: external consumer
@@ -53,7 +65,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.26.2'
+          go-version: '1.26.6'
           cache: true
 
       - name: Shell syntax
@@ -70,7 +82,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.26.2'
+          go-version: '1.26.6'
           cache: true
 
       - name: Evaluation regression
@@ -88,7 +100,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.26.2'
+          go-version: '1.26.6'
           cache: true
 
       - name: Generated contract smoke
@@ -115,7 +127,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.26.2'
+          go-version: '1.26.6'
           cache: true
 
       - name: Fuzz smoke
@@ -129,8 +141,25 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.26.2'
+          go-version: '1.26.6'
           cache: true
 
       - name: License consistency
         run: ./scripts/release-check.sh license
+
+  vuln:
+    name: vulnerability scan (Go 1.26.6)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.6'
+          cache: true
+
+      - name: Shell syntax
+        run: sh -n scripts/release-check.sh
+
+      - name: Vulnerability scan
+        run: ./scripts/release-check.sh vuln

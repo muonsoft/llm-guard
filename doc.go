@@ -11,7 +11,7 @@
 //
 // # Import path and toolchain
 //
-// Canonical module path: github.com/muonsoft/llm-guard (Go 1.26.2+).
+// Canonical module path: github.com/muonsoft/llm-guard (Go 1.26.6+).
 // External consumers must use only the public API; internal packages are not
 // supported.
 //

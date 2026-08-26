@@ -30,7 +30,10 @@
 | [M8](M8-oss-stabilization.md) | OSS-ready `v0.1.0` | M7 | `archived` | `m8-oss-stabilization` | C | 36/36 | 1 | 2 | `done` | `done` | `done` | `done` | `openspec/changes/archive/2026-08-12-m8-oss-stabilization/`, `openspec/specs/oss-distribution/spec.md`, `docs/mvp-readiness-matrix.md`, `docs/dependency-license-inventory.md`, `docs/m8-quality-benchmark-comparison.md` |
 | [PEB](PEB-prefilter-evaluation-benchmark.md) | Precision-oriented prefilter evaluation benchmark | M8 | `archived` | `prefilter-evaluation-benchmark` | Cursor-native | 52/52 | 3 | 2 | `done` | `done` | `done` | `done` | `openspec/changes/archive/2026-08-24-prefilter-evaluation-benchmark/`, `openspec/specs/prefilter-evaluation/spec.md`, `openspec/specs/oss-distribution/spec.md`, `docs/evaluation/external-baseline.md` |
 | [D1](D1-bilingual-readme.md) | Bilingual public README | PEB | `archived` | `bilingual-readme` | C | 6/6 | 1 | 2 | `done` | `done` | `done` | `done` | `openspec/changes/archive/2026-08-25-bilingual-readme/`, `openspec/specs/oss-distribution/spec.md`, `README.md`, `README.ru.md` |
+| [F1](F1-v0-1-0-release-finalization.md) | `v0.1.0` security/toolchain finalization | D1 | `archived` | `v0-1-0-release-finalization` | C | 12/12 | 1 | 1 | `done` | `done` | `done` | `done` | `openspec/changes/archive/2026-08-26-v0-1-0-release-finalization/`, `openspec/changes/archive/2026-08-26-v0-1-0-release-finalization/verification.md`, `openspec/specs/oss-distribution/spec.md`, `openspec/changes/archive/2026-08-26-internal-detect-layout/` |
+| [F2](F2-github-release-publishing.md) | GitHub Release publication после зелёных gates | F1 | `archived` | `github-release-publishing` | C | 12/12 | 1 | 2 | `done` | `done` | `done` | `done` | `openspec/changes/archive/2026-08-26-github-release-publishing/`, `openspec/changes/archive/2026-08-26-github-release-publishing/verification.md`, `openspec/specs/oss-distribution/spec.md` |
 
 ## Текущая сессия
 
-Нет активной milestone-сессии. D1 archived; следующую milestone-сессию не начинать в этом run.
+Нет активной milestone-сессии. F2 synced и archived; release
+tag/push/publication не запускались.

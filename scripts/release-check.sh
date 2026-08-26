@@ -1,6 +1,6 @@
 #!/bin/sh
 # Side-effect-free release readiness checks for llm-guard v0.1.0.
-# Modes: consumer | license | fuzz | evidence | (default) full dry-run.
+# Modes: consumer | license | fuzz | evidence | vuln | (default) full dry-run.
 # No tag, push, upload, publish, or release mutation.
 set -eu
 
@@ -24,6 +24,21 @@ die() {
 
 require_cmd() {
 	command -v "$1" >/dev/null 2>&1 || die "missing required command: $1"
+}
+
+read_minimum_go_version() {
+	minimum_go="$(sed -n 's/^go //p' go.mod | head -n 1)"
+	[ -n "$minimum_go" ] || die 'unable to read minimum Go version from go.mod'
+	printf '%s\n' "$minimum_go"
+}
+
+require_exact_minimum_go() {
+	minimum_go="$(read_minimum_go_version)"
+	expected_go="go${minimum_go}"
+	effective_go="$(go env GOVERSION)"
+	if [ "$effective_go" != "$expected_go" ]; then
+		die "vulnerability scan requires exact minimum toolchain ${expected_go} (effective: ${effective_go}); rerun with GOTOOLCHAIN=${expected_go}"
+	fi
 }
 
 run_hygiene() {
@@ -220,6 +235,12 @@ run_benchmark_smoke() {
 	go test ./... -run '^$' -bench . -benchmem -count=1
 }
 
+run_vuln() {
+	require_exact_minimum_go
+	log 'vulnerability scan (govulncheck v1.7.0; requires network or warmed module/vuln cache)'
+	go run golang.org/x/vuln/cmd/govulncheck@v1.7.0 ./...
+}
+
 run_full() {
 	run_hygiene
 	run_tests
@@ -244,8 +265,10 @@ Modes:
   license    verify go list -m all against committed inventory/notices
   fuzz       bounded smoke for required fuzz targets
   evidence   verify committed external-baseline.json measured_commit equals HEAD
+  vuln       pinned govulncheck scan on exact minimum Go from go.mod (requires
+             network or warmed module/vuln cache; use GOTOOLCHAIN=go<minimum>)
   (none)     full side-effect-free release dry-run (network-free; does not require
-             measured_commit == HEAD)
+             measured_commit == HEAD; does not run vuln)
 
 Environment:
   FUZZ_TIME           per-target fuzz duration (default: 2s)
@@ -276,6 +299,9 @@ main() {
 		;;
 	evidence)
 		run_evidence
+		;;
+	vuln)
+		run_vuln
 		;;
 	-h | --help | help)
 		usage

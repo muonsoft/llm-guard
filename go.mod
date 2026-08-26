@@ -1,6 +1,6 @@
 module github.com/muonsoft/llm-guard
 
-go 1.26.2
+go 1.26.6
 
 require (
 	github.com/muonsoft/errors v0.5.0

@@ -11,7 +11,7 @@ security review.
 **Status:** MVP **ready for `v0.1.0`** — full built-in detector pack, immutable
 allow/mask/block policy, deterministic resolver, reversible masking/restore,
 framework-neutral safe observability (Noop by default), and reproducible release
-dry-run. The `v0.1.0` tag and GitHub release **are not published yet**; see
+gates. Publication uses the GitHub **Release** workflow after green CI; see
 [docs/release-checklist.md](docs/release-checklist.md).
 
 **Library-first:** pure Go, CPU-only, embeddable in your application. Processing
@@ -21,20 +21,19 @@ documented structural rules.
 
 ## Install
 
-Until `v0.1.0` is published, install the current development snapshot from
-`main`:
+Development snapshot from `main`:
 
 ```bash
 go get github.com/muonsoft/llm-guard@main
 ```
 
-After the tag is published:
+Released version (when a semantic tag exists):
 
 ```bash
 go get github.com/muonsoft/llm-guard@v0.1.0
 ```
 
-Requires **Go 1.26.2+** — see
+Requires **Go 1.26.6+** — see
 [docs/compatibility-versioning.md](docs/compatibility-versioning.md).
 
 ## Pipeline
@@ -152,8 +151,14 @@ Full list: [docs/known-limitations.md](docs/known-limitations.md).
 ```bash
 go test ./...
 go vet ./...
+./scripts/release-check.sh
+GOTOOLCHAIN=go1.26.6 ./scripts/release-check.sh vuln
 ./scripts/release-check.sh consumer
 ```
+
+`./scripts/release-check.sh` runs the offline full release dry-run (network-free).
+The vulnerability scan is a separate online gate and must use the exact minimum
+toolchain (`GOTOOLCHAIN=go1.26.6`); see [docs/release-checklist.md](docs/release-checklist.md).
 
 Family quality boundaries: [docs/person-quality-report.md](docs/person-quality-report.md),
 [docs/address-quality-report.md](docs/address-quality-report.md). Evaluation and
@@ -167,8 +172,8 @@ benchmark methodology: [docs/evaluation-baseline.md](docs/evaluation-baseline.md
 | [docs/known-limitations.md](docs/known-limitations.md) | Published MVP boundaries |
 | [docs/compatibility-versioning.md](docs/compatibility-versioning.md) | Pre-1.0 SemVer and Go support |
 | [docs/secret-patterns.md](docs/secret-patterns.md) | Secret pattern snapshot |
-| [docs/release-checklist.md](docs/release-checklist.md) | Manual `v0.1.0` tag/release steps |
-| [CHANGELOG.md](CHANGELOG.md) | Unreleased / planned `v0.1.0` notes |
+| [docs/release-checklist.md](docs/release-checklist.md) | Release checklist and GitHub Release workflow |
+| [CHANGELOG.md](CHANGELOG.md) | Release notes and planned `v0.1.0` scope |
 
 ## Contributing, security, license
 

@@ -9,26 +9,6 @@ with pre-1.0 exceptions documented in
 
 ## [Unreleased]
 
-### Changed
-
-- Built-in structured PII and secret scanners now live in `internal/detect`.
-  Public constructors, `Detector`, and `Finding` contracts are unchanged.
-
-### Added
-
-- OSS distribution boundary: external consumer fixture, `scripts/release-check.sh`
-  dry-run gates, CI matrix (Go 1.26.2 + stable), bounded fuzz smoke, license
-  inventory consistency checks, and manual release-check workflow (dry-run only).
-- Public policies: `SECURITY.md`, `CONTRIBUTING.md`, `THIRD_PARTY_NOTICES`, release
-  checklist, compatibility policy, MVP readiness matrix, and known limitations.
-- M8 quality/benchmark comparison report referencing M7 baselines.
-
-### Documentation
-
-- README updated for v0.1.0 readiness boundary (tag/release not yet published).
-- Package GoDoc clarifies concurrency, byte spans, caller-owned `TokenSet`, and
-  security boundary.
-
 ## [0.1.0] — planned
 
 > **Note:** `v0.1.0` is the target first public release. The tag and GitHub
@@ -36,6 +16,13 @@ with pre-1.0 exceptions documented in
 > [docs/release-checklist.md](docs/release-checklist.md). This changelog entry
 > describes the intended MVP scope; it does not assert that the release already
 > exists.
+
+### Changed
+
+- Built-in structured PII and secret scanners now live in `internal/detect`.
+  Public constructors, `Detector`, and `Finding` contracts are unchanged.
+- Minimum supported Go toolchain raised to **1.26.6** to include standard-library
+  security fixes required for `v0.1.0` readiness.
 
 ### Added
 
@@ -47,11 +34,27 @@ with pre-1.0 exceptions documented in
 - Deterministic resolver, immutable allow/mask/block policy, caller-owned
   `TokenSet`, framework-neutral safe observability (noop by default), unsafe
   development diagnostics, evaluation CLI, and representative benchmarks.
+- OSS distribution boundary: external consumer fixture, `scripts/release-check.sh`
+  dry-run gates, CI matrix (Go 1.26.6 + stable), bounded fuzz smoke, license
+  inventory consistency checks, pinned `govulncheck` vulnerability gate, and
+  maintainer-dispatched `Release` workflow (revalidation, changelog commit, tag,
+  source-only GitHub Release).
+- Public policies: `SECURITY.md`, `CONTRIBUTING.md`, `THIRD_PARTY_NOTICES`, release
+  checklist, compatibility policy, MVP readiness matrix, and known limitations.
+- M8 quality/benchmark comparison report referencing M7 baselines.
+
+### Documentation
+
+- README documents install paths, release gates, and the GitHub Release workflow.
+- Package GoDoc clarifies concurrency, byte spans, caller-owned `TokenSet`, and
+  security boundary.
 
 ### Security
 
 - Secrets block by default; masking requires explicit configuration.
 - Safe observers and public errors avoid leaking original sensitive values.
+- Release readiness requires a pinned `govulncheck` scan on Go 1.26.6 with no
+  reachable standard-library or module findings.
 
 ### Known limitations
 
