@@ -9,14 +9,7 @@ with pre-1.0 exceptions documented in
 
 ## [Unreleased]
 
-## [0.1.0] — planned
-
-> **Note:** `v0.1.0` is the target first public release. The tag and GitHub
-> release are created only after a separate maintainer action following
-> [docs/release-checklist.md](docs/release-checklist.md). This changelog entry
-> describes the intended MVP scope; it does not assert that the release already
-> exists.
-
+## [0.1.0] - 2026-08-26
 ### Changed
 
 - Built-in structured PII and secret scanners now live in `internal/detect`.
