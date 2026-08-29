@@ -1,4 +1,4 @@
-schema: spec-driven
+schema: library-change
 
 context: |
   ## Проект: llm-guard (Light LLM Guard for Go)
@@ -40,3 +40,11 @@ rules:
     - "Секции MUST: ## Purpose и ## Requirements"
     - "Требования: ### Requirement:; сценарии: #### Scenario: или #### Сценарий:"
     - В тексте требований использовать SHALL или MUST
+  public_api:
+    - Писать на русском языке; фиксировать exported Go API, errors, zero values, concurrency и extension points
+  compatibility:
+    - Покрывать source compatibility, Go version, deprecations, serialization и migration для masking placeholders
+  qa_plan:
+    - Включать go test ./..., go vet ./..., race/fuzz проверки по риску и негативные security cases
+  release_plan:
+    - Указывать semver impact, documentation/examples, module compatibility и release rollback

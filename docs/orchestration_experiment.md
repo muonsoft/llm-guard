@@ -7,21 +7,21 @@
 увеличивая число ошибок финальной проверки. Herdr может дополнительно уменьшить
 операционные задержки за счёт долгоживущей видимой сессии Composer.
 
-## Варианты
+## Транспорты
 
-| Вариант | Гранулярность | Транспорт |
+| Транспорт | Гранулярность | Когда использовать |
 |---|---|---|
-| A | Текущие defaults `task-delegation` | `cursor-executor` |
-| B — control | Один primary job на green milestone | `cursor-executor` |
-| C — primary | Один primary job на green milestone | Composer через Herdr на время milestone |
+| Herdr — primary | Один primary job на green milestone | Явно вызванный `change-orchestration`, здоровый `HERDR_ENV=1` preflight |
+| `cursor-executor` — fallback/control | Та же milestone-гранулярность | Herdr недоступен до старта или следующий milestone после recovery boundary |
+| Cursor-native | Typed semantic slices | Только явно вызванный `/cursor-orchestration` как отдельный outer loop |
 
-Варианты нельзя смешивать внутри milestone или одновременно запускать в одном
-worktree. Вариант C используется по умолчанию после успешного Herdr preflight;
-B служит контролем с той же гранулярностью. При блокировке C нельзя переключаться
-на B внутри milestone — следующий вариант объявляется только после явного
-завершения или отказа от текущего milestone.
+Транспорты нельзя смешивать внутри milestone или одновременно запускать в одном
+worktree. Herdr используется первым после успешного preflight. При потере
+управления сначала проверяются result-файл и полный diff; переход на
+`cursor-executor` возможен только для явно сформулированного remaining work на
+чистой границе milestone.
 
-Каждый C packet пишет ephemeral handoff в
+Каждый Herdr packet пишет ephemeral handoff в
 `.agent-orchestration/results/<milestone>.md`. Sol классифицирует transport как
 `healthy`, `degraded` или `blocked` по правилам project overlay и принимает
 результат только после полного review diff и независимой проверки.
@@ -40,15 +40,17 @@ B служит контролем с той же гранулярностью. �
 
 ## Критерий успеха
 
-C сравнивается прежде всего с B: оба варианта используют одинаковые крупные
-milestone-срезы, поэтому разница показывает стоимость и пользу Herdr. C успешен,
-если уменьшает orchestration overhead без роста blocked milestones, failed final
-verification и дефектов после первого полного review. Вывод делать не раньше чем
-после трёх сопоставимых milestones на вариант.
+Herdr сравнивается с `cursor-executor` только на завершённых milestones одинаковой
+гранулярности. Herdr успешен, если уменьшает orchestration overhead без роста
+blocked milestones, failed final verification и дефектов после первого полного
+review. Вывод делать не раньше чем после трёх сопоставимых milestones на транспорт.
 
 ## Журнал результатов
 
-| Дата | Milestone | Вариант | Primary | Corrections | Файлы / строки | Composer | Orchestration + review | Herdr state / recovery | Final verify | Дефекты после review | Примечания |
+Историческое значение `C` в таблице означает Herdr primary до унификации
+workflow; `Cursor-native` означает отдельный Cursor-only outer loop.
+
+| Дата | Milestone | Транспорт | Primary | Corrections | Файлы / строки | Composer | Orchestration + review | Herdr state / recovery | Final verify | Дефекты после review | Примечания |
 |---|---|---:|---:|---:|---|---|---|---|---|---:|---|
 | 2026-08-12 | M0 | C | 1 | 2 | 26 / +1922 −2 | 7m43s | ≈13m | healthy / 0 timeouts / recovery не требовался / 0 orphaned panes | `go test`, `go vet`, `go test -race`, OpenSpec strict — PASS | 1 | Первый review выявил dropped standalone context errors; verification correction выявил missing validation cancel marker. |
 | 2026-08-12 | R0 | C | 1 | 2 | 22 / ≈+2031 −9 | ≈18m | ≈41m | healthy / 2 bounded wait timeouts / same session resumed after canceling an optional network build / 0 orphaned panes | reference live+offline, 27 tests, `go test`, `go vet`, `go test -race`, OpenSpec strict — PASS | 2 | Full review hardened schema/entity/order/digest contracts; verification correction closed invalid UTF-8 and unhashable-type leaks. Normal-PyPI Docker build was network-limited; digest-pinned offline live run passed. |

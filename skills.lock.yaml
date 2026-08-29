@@ -2,11 +2,19 @@ version: 4
 hub:
     repo: https://github.com/muonsoft/skills.git
     ref: main
-    commit: f5a564586bd9f86db9d6fb7bf11847018ced70dd
+    commit: ba7143b4fdea3170f20b48376abd32dc895f233f
 preset: library
 include:
-    - tag: openspec
     - tag: herdr
+exclude:
+    - id: openspec-workflow
+      artifacts:
+        - browser-report-template
+        - desktop-change-schema
+        - mobile-change-schema
+        - service-change-schema
+        - spec-driven-schema
+        - web-change-schema
 providers:
     - claude
     - cursor
@@ -15,7 +23,9 @@ selected_packages:
     - agentmem-onboarding
     - api-conventions
     - backend-structure
+    - change-orchestration
     - closeout
+    - cursor-orchestration
     - database-migrations
     - golang-errors
     - golang-logging
@@ -33,6 +43,7 @@ selected_packages:
     - runnable-background-processes
     - skill-authoring
     - task-delegation
+    - work-intake
 packages:
     agent-memory-usage:
         hub_path: devtools/agent-memory-usage
@@ -74,6 +85,16 @@ packages:
               src: .
               dest: .agents/skills/backend-structure
               installed_hash: sha256:dbeeb9900c1433b79024f08d483796e68c8f8cf28a1d5fc1d2a809c864a40853
+    change-orchestration:
+        hub_path: process/change-orchestration
+        upstream_hash: sha256:0b42821374702a0bd6b258bb1f5e71380d36fe02b6339cf19688bc7c30bb0ec3
+        artifacts:
+            - id: skill
+              kind: skill
+              mode: tree
+              src: .
+              dest: .agents/skills/change-orchestration
+              installed_hash: sha256:0b42821374702a0bd6b258bb1f5e71380d36fe02b6339cf19688bc7c30bb0ec3
     closeout:
         hub_path: devtools/closeout
         upstream_hash: sha256:5a27c7df3ffe03131b5a986696d097a562dc54e2a16542dfe0139fcd18474a87
@@ -84,6 +105,26 @@ packages:
               src: .
               dest: .agents/skills/closeout
               installed_hash: sha256:5a27c7df3ffe03131b5a986696d097a562dc54e2a16542dfe0139fcd18474a87
+    cursor-orchestration:
+        hub_path: process/cursor-orchestration
+        upstream_hash: sha256:1a2a45d32a841f4d8f68fbc8b681dade7967fcd6c92d8d705882ba07f9e88d5b
+        artifacts:
+            - id: cursor-orchestration-command
+              kind: command
+              mode: file
+              src: commands/cursor-orchestration.md
+              dest: .cursor/commands/cursor-orchestration.md
+              providers:
+                - cursor
+              installed_hash: sha256:0ae53d06221c73d8f5337021f261ef7d6799d2aa5d1935e2b3bacc3339b026dc
+            - id: cursor-orchestration-skill
+              kind: skill
+              mode: tree
+              src: cursor-orchestration
+              dest: .cursor/skills/cursor-orchestration
+              providers:
+                - cursor
+              installed_hash: sha256:98f27108e9eea09ed666599547e0e71e024decfe0288405ccd91b8fe19e53a26
     database-migrations:
         hub_path: databases/database-migrations
         upstream_hash: sha256:f22b97a00e2ebd47d4c5242304a4dfa7cdbc6844b5e661e816f4bc4e9ee0fe27
@@ -186,14 +227,14 @@ packages:
               installed_hash: sha256:91c08d6757ba1351d99e5ee2c432e8a34ba275f83170e7a8e80689cddb52ce94
     openspec-propose:
         hub_path: process/openspec-propose
-        upstream_hash: sha256:a0e9f68e87e577fe51c54c6ab6d2d5f96f1556e1984c2b0bfa46d3ed37e24571
+        upstream_hash: sha256:3f28abdbd332722dd1edb3b9caba7aba69f37af179950b00635713e84ebcec4d
         artifacts:
             - id: skill
               kind: skill
               mode: tree
               src: .
               dest: .agents/skills/openspec-propose
-              installed_hash: sha256:a0e9f68e87e577fe51c54c6ab6d2d5f96f1556e1984c2b0bfa46d3ed37e24571
+              installed_hash: sha256:3f28abdbd332722dd1edb3b9caba7aba69f37af179950b00635713e84ebcec4d
     openspec-sync-specs:
         hub_path: process/openspec-sync-specs
         upstream_hash: sha256:bba2fb69fe34e0148effa3720aa16020ee19ed327140aad7a3aa07d4a3af4822
@@ -216,14 +257,20 @@ packages:
               installed_hash: sha256:070f8b09c3a88c4bf01c173f9c0d8ddd04a4f0d8e797b109f3068c0e32da7c29
     openspec-workflow:
         hub_path: process/openspec-workflow
-        upstream_hash: sha256:e751550c340eab6a21ebfcd705edb73bd60f46db411ab195f056b147dc74175e
+        upstream_hash: sha256:5c0f1daa05673560d6c0ba9def24fce571e2780c21abc5b407273355171b5096
         artifacts:
-            - id: spec-driven-schema
+            - id: library-change-schema
               kind: schema
               mode: tree
-              src: schemas/spec-driven
-              dest: openspec/schemas/spec-driven
-              installed_hash: sha256:971031841260457c4fe01284ab9c81712ef729143960b824af9db138dd0de9bd
+              src: schemas/library-change
+              dest: openspec/schemas/library-change
+              installed_hash: sha256:20e95d6a6960de3a04030bcdd2b942a0bab08400dd304aa141b8bf78f35d7d75
+            - id: qa-report-template
+              kind: template
+              mode: file
+              src: templates/qa-report.md
+              dest: openspec/templates/qa-report.md
+              installed_hash: sha256:def7698d846e1b5a17bdf2fd7f57e27758bc9f1b526f03b438d296bd3ee07f54
     runnable-background-processes:
         hub_path: backend/go/runnable-background-processes
         upstream_hash: sha256:53586052b6b8479a41fa372fbfc54ff155759895bc8871225b9786b95833fe2f
@@ -246,11 +293,21 @@ packages:
               installed_hash: sha256:c9c83732555c674095cf70d291810513c98c42436115955ae95a494c4fddc265
     task-delegation:
         hub_path: devtools/task-delegation
-        upstream_hash: sha256:66fe4e4ab7ce0b7e86261ec208ccbb119256e263df07e6379cbd39c8c08431ad
+        upstream_hash: sha256:48ce6d31dc71188a9ecd65dd2db53fd3080662bec2980680c49df49d490f755f
         artifacts:
             - id: skill
               kind: skill
               mode: tree
               src: .
               dest: .agents/skills/task-delegation
-              installed_hash: sha256:66fe4e4ab7ce0b7e86261ec208ccbb119256e263df07e6379cbd39c8c08431ad
+              installed_hash: sha256:48ce6d31dc71188a9ecd65dd2db53fd3080662bec2980680c49df49d490f755f
+    work-intake:
+        hub_path: process/work-intake
+        upstream_hash: sha256:f9dafce169a4f770f14492579cda15505c8cb3a58a3b140601ac5e38bf984039
+        artifacts:
+            - id: skill
+              kind: skill
+              mode: tree
+              src: .
+              dest: .agents/skills/work-intake
+              installed_hash: sha256:f9dafce169a4f770f14492579cda15505c8cb3a58a3b140601ac5e38bf984039
