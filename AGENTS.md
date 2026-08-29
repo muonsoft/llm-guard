@@ -17,10 +17,12 @@ embeddable library.
 Скиллы из hub vendored в `.agents/skills/`; lock — `skills.lock.yaml`. Не редактировать
 managed-директории для переиспользуемого поведения — через hub PR и `agentmem skills pull`.
 
-Ключевые скиллы: `golang-*`, `backend-structure`, `api-conventions`, `task-delegation`,
-`herdr`, `openspec-*`, `closeout`, `agent-memory-usage`.
+Ключевые скиллы: `work-intake`, `change-orchestration`, `task-delegation`, `herdr`,
+`openspec-*`, `golang-*`, `backend-structure`, `api-conventions`, `closeout`,
+`agent-memory-usage`.
 
-`llm-guard-orchestration-experiment` — project-owned overlay в
+`llm-guard-orchestration-experiment` — project-owned overlay поверх
+`change-orchestration` в
 `.agents/skills/llm-guard-orchestration-experiment/SKILL.md`; он не управляется hub
 и не должен попадать в `skills.lock.yaml`. Overlay задаёт экспериментальные правила
 крупных milestone-срезов поверх managed `task-delegation`.
@@ -38,11 +40,10 @@ project-specific overlay:
 - один пишущий Composer на worktree; read-only проверки можно выполнять параллельно;
 - все замечания полного review отправляются одним correction packet.
 
-Варианты и журнал метрик описаны в `docs/orchestration_experiment.md`. По умолчанию
-использовать основной экспериментальный вариант C: один Composer через Herdr на
-primary job и correction cycle внутри milestone. Вариант B с той же крупной
-гранулярностью через `cursor-executor` служит контролем. Варианты нельзя менять
-внутри milestone; C не включается при неуспешном preflight.
+Журнал метрик описан в `docs/orchestration_experiment.md`. Транспорт выбирается по
+`change-orchestration`: Herdr first, `cursor-executor` как recovery/fallback после
+проверки diff. Не переключать транспорт внутри незавершённого milestone и не запускать
+два writer одновременно.
 
 ### Milestone-сессии MVP
 
@@ -51,8 +52,8 @@ Execution map хранится в `docs/milestones/`: отдельный scope-�
 `docs/milestones/RUNBOOK.md`.
 
 - одна оркестраторская сессия выполняет ровно один milestone и один OpenSpec change;
-- цикл: OpenSpec FF → Composer implementation → полный review Sol → consolidated
-  Composer correction → broad checks → OpenSpec verify → sync specs → archive;
+- цикл: OpenSpec design → Composer implementation → полный review Sol → consolidated
+  Composer correction → broad checks → sync specs → archive;
 - следующий milestone стартует только после статуса `archived` и reviewed green
   checkpoint всех его зависимостей;
 - Composer не меняет OpenSpec checkboxes, dashboard и verification ledgers — это
@@ -64,13 +65,13 @@ Execution map хранится в `docs/milestones/`: отдельный scope-�
 `.agent-orchestration/results/`. Состояния `healthy`, `degraded` и `blocked`,
 правила восстановления и критерии acceptance определены в project overlay.
 
-**Preflight для A/B**
+**Preflight для cursor-executor fallback**
 
 ```bash
 node .agents/skills/task-delegation/scripts/cursor-executor.mjs doctor
 ```
 
-**Дополнительный preflight для C**
+**Preflight для Herdr**
 
 ```bash
 test "${HERDR_ENV:-}" = 1
@@ -98,7 +99,11 @@ go vet ./...
 | `openspec/changes/<date>-<name>/` | Текущий change |
 | `openspec/changes/archive/` | Завершённые changes |
 
-**Последовательность артефактов**
+Основной профиль проекта — `library-change`: proposal/specs/design дополняются
+public API, compatibility, QA и release artifacts. Для ограниченной работы явно
+использовать встроенный `spec-driven`; другие полные профили не vendored.
+
+**Последовательность лёгкого `spec-driven` override**
 
 1. `proposal.md` — зачем и что меняется
 2. `specs/<capability>/spec.md` — требования (WHEN/THEN/AND)
@@ -114,16 +119,12 @@ openspec instructions <artifact> --change "<name>" --json
 openspec archive "<name>"
 ```
 
-**Skills** — `openspec-propose`, `openspec-new-change`, `openspec-apply-change`,
-`openspec-explore`, `openspec-verify-change`, `openspec-archive-change`, и др. в
-`.agents/skills/openspec-*/`.
-
-**Cursor** — slash-команды в `.cursor/commands/`: `/opsx-propose`, `/opsx-new`,
-`/opsx-apply`, `/opsx-archive`, `/opsx-explore`, `/opsx-verify`, `/opsx-ff`,
-`/opsx-continue`, `/opsx-sync`, `/opsx-onboard`.
-
-Первый change: перенести MVP из `docs/light_llm_guard_go_mvp_plan.md` в канонические
-спеки (`/opsx-propose` или `openspec-new-change`).
+**Skills** — универсальные `openspec-propose`, `openspec-apply-change`,
+`openspec-explore`, `openspec-update-change`, `openspec-sync-specs` и
+`openspec-archive-change` в `.agents/skills/openspec-*/`. Неполные запросы начинать с
+`work-intake`; большой milestone — с явно вызванного `change-orchestration` и локального
+overlay. Cursor-only `/cursor-orchestration` — отдельный opt-in outer loop; не смешивать
+его с general orchestration.
 
 ## Agent memory
 

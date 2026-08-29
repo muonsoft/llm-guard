@@ -1,12 +1,14 @@
 ---
 name: llm-guard-orchestration-experiment
-description: Run llm-guard coding milestones as a Herdr-first controlled orchestration experiment with GPT-5.6 Sol as orchestrator and reviewer and Composer 2.5 as the sole code writer. Use when planning, delegating, reviewing, measuring, or comparing Herdr and cursor-executor variants during non-trivial implementation work in llm-guard.
+description: Apply llm-guard milestone, evidence, and measurement rules on top of the shared Herdr-first change-orchestration workflow. Use for non-trivial implementation milestones in llm-guard.
 ---
 
 # LLM Guard Orchestration Experiment
 
-Apply this project-owned overlay after reading `task-delegation`. When variant C
-is selected, also read `herdr` and treat the installed CLI as the syntax authority.
+Apply this project-owned overlay after reading `change-orchestration`,
+`task-delegation`, and, when selected as transport, `herdr`. The shared
+orchestrator owns transport selection and recovery; this overlay adds only
+llm-guard milestone boundaries, evidence, and experiment measurements.
 
 ## Preserve role boundaries
 
@@ -37,56 +39,34 @@ Before delegating, write an execution map naming milestones, projected primary
 jobs, dependencies, and broad verification boundaries. Reject adjacent jobs that
 repeat most packet context or merely pass one contract across layers.
 
-## Run one declared variant
+## Use the shared transport policy
 
-- **A — baseline:** use the project `cursor-executor` with the shared
-  `task-delegation` slicing defaults.
-- **B — large-slice control:** use the same `cursor-executor`, but apply the
-  milestone split test above. Use B to measure the effect of Herdr separately
-  from the effect of larger task packets.
-- **C — Herdr primary:** apply the same milestone split test with one Composer
-  2.5 agent kept alive for the primary job and correction inside one milestone.
-  Use C by default while the orchestration experiment is active.
-
-Never mix variants within a milestone. Never run variants concurrently in the
-same worktree. If C becomes blocked, finish or abandon that milestone explicitly
-before starting a new milestone under B; never fall back mid-milestone.
-
-For A or B, run `cursor-executor.mjs doctor`, then use `start` for the primary
-packet and `resume` for the consolidated review packet.
-
-For C, require `HERDR_ENV=1` and successful `herdr agent list` from the
-orchestrator environment. Create a sibling pane without stealing focus, preserve
-the repository working directory, and start a uniquely named `cursor` agent
-pinned through native arguments to `composer-2.5`. Submit only the pointer to the
-repository-local task packet. If Herdr reports `blocked` or `unknown`, inspect
-`agent get` and bounded `agent read` output before acting. A failed Herdr
-preflight blocks variant C; do not silently switch variants.
+Use Herdr first when the explicit workflow runs under a healthy `HERDR_ENV=1`
+session. Otherwise use the `cursor-executor` fallback after its `doctor` check.
+Keep the transport fixed during a milestone. If Herdr loses control, follow the
+shared recovery procedure: inspect the diff, establish remaining work, then
+switch only at a clean milestone boundary. Never run both as concurrent writers.
 
 Use one Composer session per milestone, not per entire change. Reuse it for the
 primary packet and the consolidated correction cycle, then start a new session
 for the next milestone after the reviewed green checkpoint. Default to one
 correction packet; use a second only for newly revealed verification evidence.
 
-For variant C only, this overlay overrides the shared Codex host adapter's
-requirement to invoke `cursor-executor`; all other `task-delegation` policy remains
-in force.
-
-Variant C bypasses the persistent `cursor-executor` job record and repository
-writer lock. Compensate by recording the baseline Git status, enforcing the
-single-writer rule, and capturing changed paths and verification evidence in the
-experiment log.
+Herdr bypasses the persistent `cursor-executor` job record and repository writer
+lock. Compensate by recording baseline Git status, enforcing the single-writer
+rule, and capturing changed paths and verification evidence in the experiment
+log.
 
 ## Make Herdr runs recoverable
 
-Treat variant C as experimental in the current Codex environment. A smoke test
+Treat Herdr as experimental in the current Codex environment. A smoke test
 on 2026-08-12 with Herdr 0.8.0 completed two prompts in one Composer session, but
 subsequent `herdr agent read`, `get`, and `list` processes stopped responding
 before the server logged an API request; the control plane later recovered. Treat
 this as an observed Codex/Herdr compatibility risk, not a confirmed general Herdr
 defect.
 
-For every C packet, name a unique
+For every Herdr packet, name a unique
 `.agent-orchestration/results/<milestone>.md` path in `Return format`. Require
 Composer to write it after focused verification with the outcome, changed paths,
 commands and results, blockers, and a unique completion marker. Keep the result
@@ -137,13 +117,13 @@ completes `agent get`, bounded `agent read`, and `agent list`.
 
 ## Measure the experiment
 
-Record every milestone in `docs/orchestration_experiment.md`: variant, primary
+Record every milestone in `docs/orchestration_experiment.md`: transport, primary
 jobs, correction jobs, changed files and lines, executor time, orchestration and
 review time, final verification, defects found after the first review, Herdr
 transport state, control-call timeouts, recovery time, and orphaned panes.
 
-Compare C primarily against B to isolate the value and cost of Herdr while both
-use the same milestone-scale slicing policy. Prefer C only when it reduces
+Compare Herdr and cursor-executor runs only across completed milestones using the
+same milestone-scale slicing policy. Prefer Herdr only when it reduces
 orchestration overhead without increasing blocked milestones, failed final
 verification, or escaped review defects. Treat elapsed time and diff size as
 retrospective evidence, not quotas for future slicing.
