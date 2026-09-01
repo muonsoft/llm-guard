@@ -17,9 +17,9 @@ embeddable library.
 Скиллы из hub vendored в `.agents/skills/`; lock — `skills.lock.yaml`. Не редактировать
 managed-директории для переиспользуемого поведения — через hub PR и `agentmem skills pull`.
 
-Ключевые скиллы: `work-intake`, `change-orchestration`, `task-delegation`, `herdr`,
-`openspec-*`, `golang-*`, `backend-structure`, `api-conventions`, `closeout`,
-`agent-memory-usage`.
+Ключевые скиллы: `work-intake`, `codex-orchestration`, `change-orchestration`,
+`task-delegation`, `herdr`, `openspec-*`, `golang-*`, `backend-structure`,
+`api-conventions`, `closeout`, `agent-memory-usage`.
 
 `llm-guard-orchestration-experiment` — project-owned overlay поверх
 `change-orchestration` в
