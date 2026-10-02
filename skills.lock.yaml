@@ -2,7 +2,7 @@ version: 4
 hub:
     repo: https://github.com/muonsoft/skills.git
     ref: main
-    commit: 9a8dd184f73f340c42a1b8ab057b0bcc35df7270
+    commit: 9de6fe9b278bf04a2327002c2de222b40499cd37
 preset: library
 include:
     - tag: herdr
@@ -27,6 +27,7 @@ selected_packages:
     - codex-orchestration
     - cursor-orchestration
     - database-migrations
+    - go-library-release
     - golang-errors
     - golang-logging
     - golang-tests
@@ -42,6 +43,7 @@ selected_packages:
     - openspec-workflow
     - runnable-background-processes
     - skill-authoring
+    - structural-code-review
     - work-intake
 packages:
     agent-memory-usage:
@@ -126,14 +128,24 @@ packages:
               installed_hash: sha256:85641f5ae002fd66b64ce9e959845a234a267bf9f61927aeb24a12767a5bbae8
     database-migrations:
         hub_path: databases/database-migrations
-        upstream_hash: sha256:f22b97a00e2ebd47d4c5242304a4dfa7cdbc6844b5e661e816f4bc4e9ee0fe27
+        upstream_hash: sha256:14f4bf07ebf3ef1d67feedf3733648c73d718c8127bdeaff1d1d84dbac77bece
         artifacts:
             - id: skill
               kind: skill
               mode: tree
               src: .
               dest: .agents/skills/database-migrations
-              installed_hash: sha256:f22b97a00e2ebd47d4c5242304a4dfa7cdbc6844b5e661e816f4bc4e9ee0fe27
+              installed_hash: sha256:14f4bf07ebf3ef1d67feedf3733648c73d718c8127bdeaff1d1d84dbac77bece
+    go-library-release:
+        hub_path: backend/go/go-library-release
+        upstream_hash: sha256:05b0dd95ba3d2005755ea7d3fa7b46ab1fff2e5b2cd11121f36fe02a7f07cc68
+        artifacts:
+            - id: skill
+              kind: skill
+              mode: tree
+              src: .
+              dest: .agents/skills/go-library-release
+              installed_hash: sha256:05b0dd95ba3d2005755ea7d3fa7b46ab1fff2e5b2cd11121f36fe02a7f07cc68
     golang-errors:
         hub_path: backend/go/golang-errors
         upstream_hash: sha256:e115898c085144a234c46cf6743fbbde3919a40f4b20832ba7ce313d721e51d2
@@ -156,14 +168,14 @@ packages:
               installed_hash: sha256:6f5695589619917cb84ff376318227d1413e688239f0e04ef5f91f9f91a28d1d
     golang-tests:
         hub_path: backend/go/golang-tests
-        upstream_hash: sha256:2f21e771dd7a3e3e9eb3996138dbe8e15d5446c7aded132e1d893179fbc896dd
+        upstream_hash: sha256:2837084839eff466d973617e55f31992857131815986b5653ea39d691f70c7ba
         artifacts:
             - id: skill
               kind: skill
               mode: tree
               src: .
               dest: .agents/skills/golang-tests
-              installed_hash: sha256:2f21e771dd7a3e3e9eb3996138dbe8e15d5446c7aded132e1d893179fbc896dd
+              installed_hash: sha256:2837084839eff466d973617e55f31992857131815986b5653ea39d691f70c7ba
     golang-validation:
         hub_path: backend/go/golang-validation
         upstream_hash: sha256:e5fc59d69c113656728dd5d225e1677fdb9c564ed265356360024b71d59aa012
@@ -290,6 +302,16 @@ packages:
               src: .
               dest: .agents/skills/skill-authoring
               installed_hash: sha256:c9c83732555c674095cf70d291810513c98c42436115955ae95a494c4fddc265
+    structural-code-review:
+        hub_path: process/structural-code-review
+        upstream_hash: sha256:8618f330809c058ef7f0a2032830dc4bf790220a7c15d1959ba4c07bcb310d38
+        artifacts:
+            - id: skill
+              kind: skill
+              mode: tree
+              src: .
+              dest: .agents/skills/structural-code-review
+              installed_hash: sha256:8618f330809c058ef7f0a2032830dc4bf790220a7c15d1959ba4c07bcb310d38
     work-intake:
         hub_path: process/work-intake
         upstream_hash: sha256:f57f6930dac1445ea8815a4101b578f14cc17e4b75b789f2fe8527c6b90eeb39
