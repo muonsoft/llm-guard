@@ -1,5 +1,10 @@
 # llm-guard
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
+  <img src="docs/assets/banner-light.svg" alt="llm-guard: гофер-охранник маскирует ПДн перед LLM и восстанавливает их в ответе" width="100%">
+</picture>
+
 **English version:** [README.md](README.md)
 
 Лёгкий open-source **LLM Guard для Go** — локальный **precision-oriented
@@ -188,3 +193,7 @@ toolchain (`GOTOOLCHAIN=go1.26.6`); см.
 - [SECURITY.md](SECURITY.md) — сообщения об уязвимостях (приватно, только
   **синтетические тестовые данные**)
 - [MIT](LICENSE) — Copyright (c) 2026 MuonSoft
+
+Гофер на баннере README основан на оригинальном Go gopher, созданном
+[Renée French](https://reneefrench.blogspot.com/), и распространяется по лицензии
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).

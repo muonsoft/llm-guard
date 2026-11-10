@@ -1,5 +1,10 @@
 # llm-guard
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
+  <img src="docs/assets/banner-light.svg" alt="llm-guard: a gopher security guard masks PII before the LLM and restores it in the response" width="100%">
+</picture>
+
 **Read in Russian:** [README.ru.md](README.ru.md)
 
 Lightweight open-source **LLM Guard for Go** — a local **precision-oriented
@@ -181,3 +186,7 @@ benchmark methodology: [docs/evaluation-baseline.md](docs/evaluation-baseline.md
 - [SECURITY.md](SECURITY.md) — vulnerability reporting (private, synthetic
   fixtures only)
 - [MIT](LICENSE) — Copyright (c) 2026 MuonSoft
+
+The README banner gopher is inspired by the original Go gopher designed by
+[Renée French](https://reneefrench.blogspot.com/), licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
