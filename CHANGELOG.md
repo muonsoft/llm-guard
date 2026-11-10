@@ -9,6 +9,10 @@ with pre-1.0 exceptions documented in
 
 ## [Unreleased]
 
+### Changed
+
+- Add a README banner with light and dark theme variants.
+
 ## [0.1.0] - 2026-08-26
 ### Changed
 
