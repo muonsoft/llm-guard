@@ -2,7 +2,7 @@ version: 4
 hub:
     repo: https://github.com/muonsoft/skills.git
     ref: main
-    commit: 9de6fe9b278bf04a2327002c2de222b40499cd37
+    commit: 6cec1ac4fc50111aac67a4e18396595310eaba78
 preset: library
 include:
     - tag: herdr
@@ -34,6 +34,7 @@ selected_packages:
     - golang-validation
     - herdr
     - mcp-tool-input-schema
+    - muonsoft-validation
     - openspec-apply-change
     - openspec-archive-change
     - openspec-explore
@@ -44,6 +45,7 @@ selected_packages:
     - runnable-background-processes
     - skill-authoring
     - structural-code-review
+    - test-audit
     - work-intake
 packages:
     agent-memory-usage:
@@ -178,24 +180,24 @@ packages:
               installed_hash: sha256:2837084839eff466d973617e55f31992857131815986b5653ea39d691f70c7ba
     golang-validation:
         hub_path: backend/go/golang-validation
-        upstream_hash: sha256:e5fc59d69c113656728dd5d225e1677fdb9c564ed265356360024b71d59aa012
+        upstream_hash: sha256:3b11819259f7efbab59faa5bbdbb0c202fece01e7f1559079ff2c91005c0f1ab
         artifacts:
             - id: skill
               kind: skill
               mode: tree
               src: .
               dest: .agents/skills/golang-validation
-              installed_hash: sha256:e5fc59d69c113656728dd5d225e1677fdb9c564ed265356360024b71d59aa012
+              installed_hash: sha256:3b11819259f7efbab59faa5bbdbb0c202fece01e7f1559079ff2c91005c0f1ab
     herdr:
         hub_path: devtools/herdr
-        upstream_hash: sha256:e4f8502936c83b0777dcc8fd5fdff4c79c3146c1a66655e7ebf8b19c407086a6
+        upstream_hash: sha256:53320614d9acb5f5e11552312106e53aa97e21daeb624f16ba5e48cdd7cff085
         artifacts:
             - id: skill
               kind: skill
               mode: tree
               src: .
               dest: .agents/skills/herdr
-              installed_hash: sha256:e4f8502936c83b0777dcc8fd5fdff4c79c3146c1a66655e7ebf8b19c407086a6
+              installed_hash: sha256:53320614d9acb5f5e11552312106e53aa97e21daeb624f16ba5e48cdd7cff085
     mcp-tool-input-schema:
         hub_path: integration/mcp-tool-input-schema
         upstream_hash: sha256:557f6ec7f118bd436d12a443bde3be17aa0201209ff1140630e53c4824d43c3f
@@ -206,6 +208,16 @@ packages:
               src: .
               dest: .agents/skills/mcp-tool-input-schema
               installed_hash: sha256:557f6ec7f118bd436d12a443bde3be17aa0201209ff1140630e53c4824d43c3f
+    muonsoft-validation:
+        hub_path: backend/go/muonsoft-validation
+        upstream_hash: sha256:e08482842ec81fe848ec9e5e44011877398a3a863169a10292d0ce9ca3a6da7a
+        artifacts:
+            - id: skill
+              kind: skill
+              mode: tree
+              src: .
+              dest: .agents/skills/muonsoft-validation
+              installed_hash: sha256:e08482842ec81fe848ec9e5e44011877398a3a863169a10292d0ce9ca3a6da7a
     openspec-apply-change:
         hub_path: process/openspec-apply-change
         upstream_hash: sha256:ced3fe15f17d7ea871932f031699bd34da209e8eaeabfb3a2a5192c8426fd3d2
@@ -312,6 +324,16 @@ packages:
               src: .
               dest: .agents/skills/structural-code-review
               installed_hash: sha256:8618f330809c058ef7f0a2032830dc4bf790220a7c15d1959ba4c07bcb310d38
+    test-audit:
+        hub_path: process/test-audit
+        upstream_hash: sha256:5e0831fab7027ba29450ac6edfdb38b2e5e35bb221d2c25af41048d955a3aa48
+        artifacts:
+            - id: skill
+              kind: skill
+              mode: tree
+              src: .
+              dest: .agents/skills/test-audit
+              installed_hash: sha256:5e0831fab7027ba29450ac6edfdb38b2e5e35bb221d2c25af41048d955a3aa48
     work-intake:
         hub_path: process/work-intake
         upstream_hash: sha256:f57f6930dac1445ea8815a4101b578f14cc17e4b75b789f2fe8527c6b90eeb39
