@@ -3,7 +3,7 @@ module github.com/muonsoft/llm-guard
 go 1.26.6
 
 require (
-	github.com/muonsoft/errors v0.5.0
+	github.com/muonsoft/errors v0.6.0
 	github.com/muonsoft/go-razdel v0.1.0
 	github.com/stretchr/testify v1.11.1
 )
