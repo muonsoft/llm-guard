@@ -73,7 +73,7 @@ jobs:
             }' > redmadrobot-exposure.json
 
       - name: Upload exposure report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: redmadrobot-exposure-${{ github.run_id }}
           path: redmadrobot-exposure.json
