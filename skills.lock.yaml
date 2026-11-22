@@ -1,8 +1,8 @@
-version: 4
+version: 5
 hub:
     repo: https://github.com/muonsoft/skills.git
     ref: main
-    commit: 15ad3e0eeee0864221b0349fdd79ea45a66759ae
+    commit: ea13c57540eca682262af114b40ed92928a320df
 preset: library
 include:
     - tag: herdr
@@ -100,14 +100,14 @@ packages:
               installed_hash: sha256:5a27c7df3ffe03131b5a986696d097a562dc54e2a16542dfe0139fcd18474a87
     codex-orchestration:
         hub_path: process/codex-orchestration
-        upstream_hash: sha256:019c23a9785514f74384e5153f26fd330c50fb20a73abfbcbf4a72b701e51734
+        upstream_hash: sha256:f6169ec13b1b66ef7a4d6c8d3cf8708de5edae2b34dd77f9e2d54dbc510b8ce4
         artifacts:
             - id: skill
               kind: skill
               mode: tree
               src: .
               dest: .agents/skills/codex-orchestration
-              installed_hash: sha256:019c23a9785514f74384e5153f26fd330c50fb20a73abfbcbf4a72b701e51734
+              installed_hash: sha256:f6169ec13b1b66ef7a4d6c8d3cf8708de5edae2b34dd77f9e2d54dbc510b8ce4
     cursor-orchestration:
         hub_path: process/cursor-orchestration
         upstream_hash: sha256:7ce3d1ed3e64a34fcfd3873883e8bbb2e77f15b9b721614bd100548060033d76
@@ -219,65 +219,95 @@ packages:
               dest: .agents/skills/muonsoft-validation
               installed_hash: sha256:e08482842ec81fe848ec9e5e44011877398a3a863169a10292d0ce9ca3a6da7a
     openspec-apply-change:
+        global:
+            repository: https://github.com/Fission-AI/OpenSpec.git
+            minimum_version: 2.1.1
+            commit: 0c737dc1b543249b38b0f4716816fcf493d894dd
+            tree_hash: sha256:a25daf56115ebcebae633b4dd967e401509dbef72df680a872132082054ff067
         hub_path: process/openspec-apply-change
-        upstream_hash: sha256:d26ef789eabfe3830fe6d35336a547d6cbb7e561e6fd1f44a088fa2db83d8ee8
+        upstream_hash: sha256:a25daf56115ebcebae633b4dd967e401509dbef72df680a872132082054ff067
         artifacts:
             - id: skill
               kind: skill
               mode: tree
               src: .
               dest: .agents/skills/openspec-apply-change
-              installed_hash: sha256:d26ef789eabfe3830fe6d35336a547d6cbb7e561e6fd1f44a088fa2db83d8ee8
+              installed_hash: sha256:a25daf56115ebcebae633b4dd967e401509dbef72df680a872132082054ff067
     openspec-archive-change:
+        global:
+            repository: https://github.com/Fission-AI/OpenSpec.git
+            minimum_version: 2.1.1
+            commit: 0c737dc1b543249b38b0f4716816fcf493d894dd
+            tree_hash: sha256:b48621de126ed18cce2baa36df6cbb7d7bec2f0d5d6cee831a7abb418cf52f55
         hub_path: process/openspec-archive-change
-        upstream_hash: sha256:e7221f965b26803ff3ec5fb46a2cebcfef06fbdf74004f346c841143880e15db
+        upstream_hash: sha256:b48621de126ed18cce2baa36df6cbb7d7bec2f0d5d6cee831a7abb418cf52f55
         artifacts:
             - id: skill
               kind: skill
               mode: tree
               src: .
               dest: .agents/skills/openspec-archive-change
-              installed_hash: sha256:e7221f965b26803ff3ec5fb46a2cebcfef06fbdf74004f346c841143880e15db
+              installed_hash: sha256:b48621de126ed18cce2baa36df6cbb7d7bec2f0d5d6cee831a7abb418cf52f55
     openspec-explore:
+        global:
+            repository: https://github.com/Fission-AI/OpenSpec.git
+            minimum_version: 2.1.1
+            commit: 0c737dc1b543249b38b0f4716816fcf493d894dd
+            tree_hash: sha256:84011f8203c7fd16cd5831f7f86a4e1f8f4b3f8ff00435014dbff91705760dd4
         hub_path: process/openspec-explore
-        upstream_hash: sha256:49a324dc34cdae2a3e31f6885d556e21a890a81a897ac826bba1a74e490cf9b4
+        upstream_hash: sha256:84011f8203c7fd16cd5831f7f86a4e1f8f4b3f8ff00435014dbff91705760dd4
         artifacts:
             - id: skill
               kind: skill
               mode: tree
               src: .
               dest: .agents/skills/openspec-explore
-              installed_hash: sha256:49a324dc34cdae2a3e31f6885d556e21a890a81a897ac826bba1a74e490cf9b4
+              installed_hash: sha256:84011f8203c7fd16cd5831f7f86a4e1f8f4b3f8ff00435014dbff91705760dd4
     openspec-propose:
+        global:
+            repository: https://github.com/Fission-AI/OpenSpec.git
+            minimum_version: 2.1.1
+            commit: 0c737dc1b543249b38b0f4716816fcf493d894dd
+            tree_hash: sha256:dcb6d41c284cd4fc9d866754a6922561bbc524d9475e475efe0c100e39ab8cf9
         hub_path: process/openspec-propose
-        upstream_hash: sha256:7ca8f3432192393f2b5c4aef9de3fb02c103b8e03e88aac8a8ddfdd9808d2acd
+        upstream_hash: sha256:dcb6d41c284cd4fc9d866754a6922561bbc524d9475e475efe0c100e39ab8cf9
         artifacts:
             - id: skill
               kind: skill
               mode: tree
               src: .
               dest: .agents/skills/openspec-propose
-              installed_hash: sha256:7ca8f3432192393f2b5c4aef9de3fb02c103b8e03e88aac8a8ddfdd9808d2acd
+              installed_hash: sha256:dcb6d41c284cd4fc9d866754a6922561bbc524d9475e475efe0c100e39ab8cf9
     openspec-sync-specs:
+        global:
+            repository: https://github.com/Fission-AI/OpenSpec.git
+            minimum_version: 2.1.1
+            commit: 0c737dc1b543249b38b0f4716816fcf493d894dd
+            tree_hash: sha256:b32f55d0ad6f97d3f490a2aa4b671153e712466c2de206bd0c84d4f29fcc2d25
         hub_path: process/openspec-sync-specs
-        upstream_hash: sha256:e9c2fb9f0da8e45b291039fc798cf3c501a7c6ac49025fd4ccd927747f95f697
+        upstream_hash: sha256:b32f55d0ad6f97d3f490a2aa4b671153e712466c2de206bd0c84d4f29fcc2d25
         artifacts:
             - id: skill
               kind: skill
               mode: tree
               src: .
               dest: .agents/skills/openspec-sync-specs
-              installed_hash: sha256:e9c2fb9f0da8e45b291039fc798cf3c501a7c6ac49025fd4ccd927747f95f697
+              installed_hash: sha256:b32f55d0ad6f97d3f490a2aa4b671153e712466c2de206bd0c84d4f29fcc2d25
     openspec-update-change:
+        global:
+            repository: https://github.com/Fission-AI/OpenSpec.git
+            minimum_version: 2.1.1
+            commit: 0c737dc1b543249b38b0f4716816fcf493d894dd
+            tree_hash: sha256:789681f16ef67be1800fce841dec6d7f105a6428b8fc8b639e56edc098770883
         hub_path: process/openspec-update-change
-        upstream_hash: sha256:3dc3bac0485c0dc12e03b40a834a7ab8b92dc1e81e92872bbe3f07172fe960e2
+        upstream_hash: sha256:789681f16ef67be1800fce841dec6d7f105a6428b8fc8b639e56edc098770883
         artifacts:
             - id: skill
               kind: skill
               mode: tree
               src: .
               dest: .agents/skills/openspec-update-change
-              installed_hash: sha256:3dc3bac0485c0dc12e03b40a834a7ab8b92dc1e81e92872bbe3f07172fe960e2
+              installed_hash: sha256:789681f16ef67be1800fce841dec6d7f105a6428b8fc8b639e56edc098770883
     openspec-workflow:
         hub_path: process/openspec-workflow
         upstream_hash: sha256:059100a614d6c8564a3ac6487c8a843fd2c66f428c5ab61293fe3d3bca96cf9b
